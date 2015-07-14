@@ -20,18 +20,19 @@
 package de.jackwhite20.comix;
 
 import de.jackwhite20.comix.config.ComixConfig;
+import de.jackwhite20.comix.console.Console;
 import de.jackwhite20.comix.network.UpstreamHandler;
 import de.jackwhite20.comix.strategy.BalancingStrategy;
 import de.jackwhite20.comix.strategy.RoundRobinBalancingStrategy;
 import de.jackwhite20.comix.util.TargetData;
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.ChannelPipeline;
+import io.netty.channel.*;
+import io.netty.channel.group.ChannelGroup;
+import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.util.concurrent.GlobalEventExecutor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -55,7 +56,14 @@ public class Comix {
 
     private ComixConfig comixConfig;
 
+    private ChannelGroup channelGroup;
+
+    private NioEventLoopGroup bossGroup;
+
+    private NioEventLoopGroup workerGroup;
+
     public Comix(ComixConfig comixConfig) {
+        instance = this;
         this.comixConfig = comixConfig;
         this.balancerHost = comixConfig.getHost();
         this.balancerPort = comixConfig.getPort();
@@ -63,12 +71,14 @@ public class Comix {
     }
 
     public void start() {
-        System.out.println("Starting LoadBalancer on " + balancerHost + "...");
+        Console.getConsole().println("Starting Comix on " + balancerHost + "...");
 
         balancingStrategy = new RoundRobinBalancingStrategy(targets);
 
-        NioEventLoopGroup bossGroup = new NioEventLoopGroup();
-        NioEventLoopGroup workerGroup = new NioEventLoopGroup();
+        channelGroup = new DefaultChannelGroup("clients", GlobalEventExecutor.INSTANCE);
+
+        bossGroup = new NioEventLoopGroup();
+        workerGroup = new NioEventLoopGroup();
 
         try {
             bootstrap = new ServerBootstrap();
@@ -76,6 +86,7 @@ public class Comix {
                     .channel(NioServerSocketChannel.class)
                     .option(ChannelOption.TCP_NODELAY, true)
                     .option(ChannelOption.SO_BACKLOG, 200)
+                    .option(ChannelOption.SO_REUSEADDR, true)
                     .childOption(ChannelOption.TCP_NODELAY, true)
                     .childOption(ChannelOption.AUTO_READ, false)
                     .childHandler(new ChannelInitializer<SocketChannel>() {
@@ -84,17 +95,16 @@ public class Comix {
                         public void initChannel(SocketChannel ch) throws Exception {
                             ChannelPipeline p = ch.pipeline();
 
-                            //p.addFirst(new UpstreamHandler(balancingStrategy));
                             p.addLast(new UpstreamHandler(balancingStrategy));
 
-                            System.out.println("[/" + p.channel().remoteAddress() + "] <-> InitialHandler has connected");
+                            Console.getConsole().println("[/" + p.channel().remoteAddress() + "] <-> InitialHandler has connected");
                         }
 
                     });
 
             ChannelFuture f = bootstrap.bind(comixConfig.getPort()).sync();
 
-            System.out.println("LoadBalancer is started!");
+            Console.getConsole().println("Comix is started!");
 
             f.channel().closeFuture().sync();
         } catch (Exception e) {
@@ -103,6 +113,16 @@ public class Comix {
             bossGroup.shutdownGracefully();
             workerGroup.shutdownGracefully();
         }
+    }
+
+    public void shutdown() {
+        channelGroup.close();
+        bossGroup.shutdownGracefully();
+        workerGroup.shutdownGracefully();
+    }
+
+    public void addChannel(Channel channel) {
+        channelGroup.add(channel);
     }
 
     public ComixConfig getComixConfig() {

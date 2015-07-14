@@ -21,6 +21,9 @@ package de.jackwhite20.comix;
 
 import de.jackwhite20.comix.config.ComixConfig;
 import de.jackwhite20.comix.config.Config;
+import de.jackwhite20.comix.console.Console;
+import de.jackwhite20.comix.util.Color;
+import de.jackwhite20.comix.util.ThreadEvent;
 
 /**
  * Created by JackWhite20 on 13.07.2015.
@@ -36,7 +39,24 @@ public class Main {
             System.exit(1);
         }
 
-        new Comix(comixConfig).start();
+        ThreadEvent threadEvent = new ThreadEvent();
+
+        Console console = new Console("Comix > ", Color.CYAN, threadEvent);
+        new Thread(console, "Console").start();
+
+        try {
+            threadEvent.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        Comix comix = new Comix(comixConfig);
+        comix.start();
+
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            console.stop();
+            comix.shutdown();
+        }));
     }
 
 }

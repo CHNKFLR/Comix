@@ -19,6 +19,8 @@
 
 package de.jackwhite20.comix.network;
 
+import de.jackwhite20.comix.Comix;
+import de.jackwhite20.comix.console.Console;
 import de.jackwhite20.comix.strategy.BalancingStrategy;
 import de.jackwhite20.comix.util.TargetData;
 import de.jackwhite20.comix.util.Util;
@@ -46,7 +48,9 @@ public class UpstreamHandler extends SimpleChannelInboundHandler<ByteBuf> {
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         Channel upstreamChannel = ctx.channel();
 
-        System.out.println("[/" + Util.formatSocketAddress(upstreamChannel.remoteAddress()) + "] -> UpstreamHandler has connected");
+        Comix.getInstance().addChannel(upstreamChannel);
+
+        Console.getConsole().println("[/" + Util.formatSocketAddress(upstreamChannel.remoteAddress()) + "] -> UpstreamHandler has connected");
 
         InetSocketAddress address = (InetSocketAddress) upstreamChannel.remoteAddress();
         TargetData target = this.strategy.selectTarget(address.getHostName(), address.getPort());
@@ -56,7 +60,7 @@ public class UpstreamHandler extends SimpleChannelInboundHandler<ByteBuf> {
                 .channel(upstreamChannel.getClass())
                 .option(ChannelOption.TCP_NODELAY, true)
                 .option(ChannelOption.AUTO_READ, false)
-                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 3000)
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 2000)
                 .handler(new DownstreamHandler(upstreamChannel));
 
         ChannelFuture f = bootstrap.connect(target.getHost(), target.getPort());
@@ -67,7 +71,7 @@ public class UpstreamHandler extends SimpleChannelInboundHandler<ByteBuf> {
             if (future.isSuccess()) {
                 upstreamChannel.read();
 
-                System.out.println("[" + Util.formatSocketAddress(upstreamChannel.remoteAddress()) + "] <-> [" + Util.formatSocketAddress(f.channel().remoteAddress()) + "] tunneled");
+                Console.getConsole().println("[" + Util.formatSocketAddress(upstreamChannel.remoteAddress()) + "] <-> [" + Util.formatSocketAddress(f.channel().remoteAddress()) + "] tunneled");
             } else {
                 upstreamChannel.close();
             }
@@ -92,7 +96,7 @@ public class UpstreamHandler extends SimpleChannelInboundHandler<ByteBuf> {
                 downstreamChannel.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE);
             }
 
-            System.out.println("[" + Util.formatSocketAddress(ctx.channel().remoteAddress()) + "] -> UpstreamHandler has disconnected");
+            Console.getConsole().println("[" + Util.formatSocketAddress(ctx.channel().remoteAddress()) + "] -> UpstreamHandler has disconnected");
         }
     }
 
