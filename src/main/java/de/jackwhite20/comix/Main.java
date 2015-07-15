@@ -34,6 +34,8 @@ public class Main {
         ComixConfig comixConfig = null;
         try {
             comixConfig = Config.loadConfig("");
+
+            System.out.println("Config loaded...");
         } catch (Exception e) {
             System.out.println("Unable to load Comix Config file!");
             System.exit(1);

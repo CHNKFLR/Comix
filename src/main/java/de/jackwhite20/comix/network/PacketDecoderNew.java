@@ -83,7 +83,7 @@ public class PacketDecoderNew extends MessageToMessageDecoder<ByteBuf> {
                     //Console.getConsole().println("Finished...");
                     //list.add(copy.retain());
                 } else if (state == 2) {
-                    upstreamHandler.startProxying(copy.retain());
+                    //upstreamHandler.startProxying();
 
                     Console.getConsole().println("HANDSHAKE: " + version + " - " + ip + ":" + port + " - " + "LOGIN");
                     String name = Protocol.readString(buffer);

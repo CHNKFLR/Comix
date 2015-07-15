@@ -137,7 +137,7 @@ public class Comix {
     }
 
     public String replaceColor(String input) {
-        return input.replace("§", "\u00A7");
+        return input.replace("§", "\\u00A7");
     }
 
     public void loadStatusResponse() {
@@ -152,11 +152,9 @@ public class Comix {
             }
 
             statusResponse = new Gson().fromJson(stringBuilder.toString(), StatusResponse.class);
-            //Console.getConsole().println("Name: " + statusResponse.getVersion().getName() + " Protocol: " + statusResponse.getVersion().getProtocol() + " Max: " + statusResponse.getPlayers().getMax() + " Online: " + statusResponse.getPlayers().getOnline() + " Description: " + replaceColor(statusResponse.getDescription()));
             statusResponseString = "{\"version\":{\"name\":\"" + statusResponse.getVersion().getName() + "\",\"protocol\":" + statusResponse.getVersion().getProtocol() + "},\"players\":{\"max\":" + statusResponse.getPlayers().getMax() + ",\"online\":" + statusResponse.getPlayers().getOnline() + "},\"description\":\"" + statusResponse.getDescription() + "\",\"modinfo\":{\"type\":\"FML\",\"modList\":[]}}";
-            //statusResponseString = "{\"version\":{\"name\":\"" + statusResponse.getVersion().getName() + "\",\"protocol\":" + statusResponse.getVersion().getProtocol() + "},\"players\":{\"max\":" + statusResponse.getPlayers().getMax() + ",\"online\":" + statusResponse.getPlayers().getOnline() + "},\"description\":\"" + statusResponse.getDescription() + "\",\"modinfo\":{\"type\":\"FML\",\"modList\":[]}}";
 
-            Console.getConsole().println("StatusResponse successfully loaded!");
+            Console.getConsole().println("StatusResponse string loaded...");
         } catch (Exception e) {
             Console.getConsole().println("Error loading status.comix");
             e.printStackTrace();

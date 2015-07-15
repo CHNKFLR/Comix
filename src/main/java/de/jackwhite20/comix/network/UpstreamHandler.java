@@ -47,7 +47,7 @@ public class UpstreamHandler extends SimpleChannelInboundHandler<ByteBuf> {
         this.strategy = strategy;
     }
 
-    public void startProxying(ByteBuf firstPacket) throws  Exception {
+    public void startProxying() throws  Exception {
         Console.getConsole().println("Starting proxying...");
 
         InetSocketAddress address = (InetSocketAddress) upstreamChannel.remoteAddress();
@@ -59,7 +59,6 @@ public class UpstreamHandler extends SimpleChannelInboundHandler<ByteBuf> {
                 .option(ChannelOption.TCP_NODELAY, true)
                 .option(ChannelOption.AUTO_READ, false)
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 3000)
-                        //.handler(new PacketDownstreamDecoder())
                 .handler(new DownstreamHandler(upstreamChannel));
 
         ChannelFuture f = bootstrap.connect(target.getHost(), target.getPort());
@@ -69,7 +68,7 @@ public class UpstreamHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
         downstreamChannel = f.channel();
 
-        downstreamChannel.writeAndFlush(firstPacket.retain());
+        //downstreamChannel.writeAndFlush(firstPacket.retain());
 
         f.addListener((future) -> {
             //Console.getConsole().println("isSuccess: " + future.isSuccess());
@@ -93,9 +92,9 @@ public class UpstreamHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
         Console.getConsole().println("[/" + Util.formatSocketAddress(upstreamChannel.remoteAddress()) + "] -> UpstreamHandler has connected");
 
-        upstreamChannel.read();
+        //upstreamChannel.read();
 
-/*        InetSocketAddress address = (InetSocketAddress) upstreamChannel.remoteAddress();
+        InetSocketAddress address = (InetSocketAddress) upstreamChannel.remoteAddress();
         TargetData target = this.strategy.selectTarget(address.getHostName(), address.getPort());
 
         Bootstrap bootstrap = new Bootstrap();
@@ -122,7 +121,7 @@ public class UpstreamHandler extends SimpleChannelInboundHandler<ByteBuf> {
             } else {
                 upstreamChannel.close();
             }
-        });*/
+        });
     }
 
     @Override
