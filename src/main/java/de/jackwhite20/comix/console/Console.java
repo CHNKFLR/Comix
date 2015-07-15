@@ -26,6 +26,9 @@ import jline.console.CursorBuffer;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * Created by JackWhite20 on 14.07.2015.
@@ -35,6 +38,8 @@ public class Console implements Runnable {
     private static Console console;
 
     private boolean running;
+
+    private DateFormat dateFormat = new SimpleDateFormat("MM/dd HH:mm:ss.S");
 
     private ConsoleReader consoleReader;
 
@@ -68,7 +73,7 @@ public class Console implements Runnable {
         synchronized (stashed) {
             stashLine();
 
-            printWriter.println(line);
+            printWriter.println(dateFormat.format(new Date()) + " " + line);
             printWriter.flush();
 
             unstashLine();

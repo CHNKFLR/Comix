@@ -19,8 +19,11 @@
 
 package de.jackwhite20.comix;
 
+import com.google.gson.Gson;
 import de.jackwhite20.comix.config.ComixConfig;
 import de.jackwhite20.comix.console.Console;
+import de.jackwhite20.comix.network.PacketDecoderNew;
+import de.jackwhite20.comix.network.StatusResponse;
 import de.jackwhite20.comix.network.UpstreamHandler;
 import de.jackwhite20.comix.strategy.BalancingStrategy;
 import de.jackwhite20.comix.strategy.RoundRobinBalancingStrategy;
@@ -34,6 +37,8 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.concurrent.GlobalEventExecutor;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -56,6 +61,10 @@ public class Comix {
 
     private ComixConfig comixConfig;
 
+    private StatusResponse statusResponse;
+
+    private String statusResponseString;
+
     private ChannelGroup channelGroup;
 
     private NioEventLoopGroup bossGroup;
@@ -71,7 +80,7 @@ public class Comix {
     }
 
     public void start() {
-        Console.getConsole().println("Starting Comix on " + balancerHost + "...");
+        Console.getConsole().println("Starting Comix on " + balancerHost + ":" + balancerPort + "...");
 
         balancingStrategy = new RoundRobinBalancingStrategy(targets);
 
@@ -94,8 +103,12 @@ public class Comix {
                         @Override
                         public void initChannel(SocketChannel ch) throws Exception {
                             ChannelPipeline p = ch.pipeline();
+                            UpstreamHandler upstreamHandler = new UpstreamHandler(balancingStrategy);
 
-                            p.addLast(new UpstreamHandler(balancingStrategy));
+                            p.addFirst(new PacketDecoderNew(upstreamHandler));
+                            //p.addFirst(new PacketDecoder());
+                            //p.addFirst(new PacketDownstreamDecoder());
+                            p.addLast(upstreamHandler);
 
                             Console.getConsole().println("[/" + p.channel().remoteAddress() + "] <-> InitialHandler has connected");
                         }
@@ -105,6 +118,8 @@ public class Comix {
             ChannelFuture f = bootstrap.bind(comixConfig.getPort()).sync();
 
             Console.getConsole().println("Comix is started!");
+
+            loadStatusResponse();
 
             f.channel().closeFuture().sync();
         } catch (Exception e) {
@@ -121,12 +136,43 @@ public class Comix {
         workerGroup.shutdownGracefully();
     }
 
+    public String replaceColor(String input) {
+        return input.replace("§", "\u00A7");
+    }
+
+    public void loadStatusResponse() {
+        try {
+            BufferedReader bufferedReader = new BufferedReader(new FileReader("status.comix"));
+            StringBuilder stringBuilder = new StringBuilder();
+
+            String line;
+            while ((line = bufferedReader.readLine()) != null) {
+                stringBuilder.append(line);
+                stringBuilder.append(System.lineSeparator());
+            }
+
+            statusResponse = new Gson().fromJson(stringBuilder.toString(), StatusResponse.class);
+            //Console.getConsole().println("Name: " + statusResponse.getVersion().getName() + " Protocol: " + statusResponse.getVersion().getProtocol() + " Max: " + statusResponse.getPlayers().getMax() + " Online: " + statusResponse.getPlayers().getOnline() + " Description: " + replaceColor(statusResponse.getDescription()));
+            statusResponseString = "{\"version\":{\"name\":\"" + statusResponse.getVersion().getName() + "\",\"protocol\":" + statusResponse.getVersion().getProtocol() + "},\"players\":{\"max\":" + statusResponse.getPlayers().getMax() + ",\"online\":" + statusResponse.getPlayers().getOnline() + "},\"description\":\"" + statusResponse.getDescription() + "\",\"modinfo\":{\"type\":\"FML\",\"modList\":[]}}";
+            //statusResponseString = "{\"version\":{\"name\":\"" + statusResponse.getVersion().getName() + "\",\"protocol\":" + statusResponse.getVersion().getProtocol() + "},\"players\":{\"max\":" + statusResponse.getPlayers().getMax() + ",\"online\":" + statusResponse.getPlayers().getOnline() + "},\"description\":\"" + statusResponse.getDescription() + "\",\"modinfo\":{\"type\":\"FML\",\"modList\":[]}}";
+
+            Console.getConsole().println("StatusResponse successfully loaded!");
+        } catch (Exception e) {
+            Console.getConsole().println("Error loading status.comix");
+            e.printStackTrace();
+        }
+    }
+
     public void addChannel(Channel channel) {
         channelGroup.add(channel);
     }
 
     public ComixConfig getComixConfig() {
         return comixConfig;
+    }
+
+    public String getStatusResponseString() {
+        return statusResponseString;
     }
 
     public void setComixConfig(ComixConfig comixConfig) {

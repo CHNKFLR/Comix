@@ -53,13 +53,6 @@
             <version>1.7.12</version>
         </dependency>
 
-        <!-- Jopt -->
-        <dependency>
-            <groupId>net.sf.jopt-simple</groupId>
-            <artifactId>jopt-simple</artifactId>
-            <version>4.9-beta-1</version>
-        </dependency>
-
         <!-- Gson -->
         <dependency>
             <groupId>com.google.code.gson</groupId>

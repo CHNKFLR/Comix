@@ -23,6 +23,7 @@ import de.jackwhite20.comix.Comix;
 import de.jackwhite20.comix.console.Console;
 import de.jackwhite20.comix.strategy.BalancingStrategy;
 import de.jackwhite20.comix.util.TargetData;
+import de.jackwhite20.comix.util.ThreadEvent;
 import de.jackwhite20.comix.util.Util;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
@@ -38,19 +39,16 @@ public class UpstreamHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
     private BalancingStrategy strategy;
 
+    private Channel upstreamChannel;
+
     private Channel downstreamChannel;
 
     public UpstreamHandler(BalancingStrategy strategy) {
         this.strategy = strategy;
     }
 
-    @Override
-    public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        Channel upstreamChannel = ctx.channel();
-
-        Comix.getInstance().addChannel(upstreamChannel);
-
-        Console.getConsole().println("[/" + Util.formatSocketAddress(upstreamChannel.remoteAddress()) + "] -> UpstreamHandler has connected");
+    public void startProxying(ByteBuf firstPacket) throws  Exception {
+        Console.getConsole().println("Starting proxying...");
 
         InetSocketAddress address = (InetSocketAddress) upstreamChannel.remoteAddress();
         TargetData target = this.strategy.selectTarget(address.getHostName(), address.getPort());
@@ -60,10 +58,59 @@ public class UpstreamHandler extends SimpleChannelInboundHandler<ByteBuf> {
                 .channel(upstreamChannel.getClass())
                 .option(ChannelOption.TCP_NODELAY, true)
                 .option(ChannelOption.AUTO_READ, false)
-                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 2000)
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 3000)
+                        //.handler(new PacketDownstreamDecoder())
                 .handler(new DownstreamHandler(upstreamChannel));
 
         ChannelFuture f = bootstrap.connect(target.getHost(), target.getPort());
+
+        //f.channel().pipeline().addFirst(new PacketDownstreamDecoder());
+        //f.channel().pipeline().addFirst(new PacketDecoderNew());
+
+        downstreamChannel = f.channel();
+
+        downstreamChannel.writeAndFlush(firstPacket.retain());
+
+        f.addListener((future) -> {
+            //Console.getConsole().println("isSuccess: " + future.isSuccess());
+            if (future.isSuccess()) {
+                upstreamChannel.read();
+
+                Console.getConsole().println("[" + Util.formatSocketAddress(upstreamChannel.remoteAddress()) + "] <-> [" + Util.formatSocketAddress(f.channel().remoteAddress()) + "] tunneled");
+            } else {
+                upstreamChannel.close();
+            }
+        });
+
+        Console.getConsole().println("Downstream connected....");
+    }
+
+    @Override
+    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+        upstreamChannel = ctx.channel();
+
+        Comix.getInstance().addChannel(upstreamChannel);
+
+        Console.getConsole().println("[/" + Util.formatSocketAddress(upstreamChannel.remoteAddress()) + "] -> UpstreamHandler has connected");
+
+        upstreamChannel.read();
+
+/*        InetSocketAddress address = (InetSocketAddress) upstreamChannel.remoteAddress();
+        TargetData target = this.strategy.selectTarget(address.getHostName(), address.getPort());
+
+        Bootstrap bootstrap = new Bootstrap();
+        bootstrap.group(upstreamChannel.eventLoop())
+                .channel(upstreamChannel.getClass())
+                .option(ChannelOption.TCP_NODELAY, true)
+                .option(ChannelOption.AUTO_READ, false)
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 2000)
+                //.handler(new PacketDownstreamDecoder())
+                .handler(new DownstreamHandler(upstreamChannel));
+
+        ChannelFuture f = bootstrap.connect(target.getHost(), target.getPort());
+
+        //f.channel().pipeline().addFirst(new PacketDownstreamDecoder());
+        //f.channel().pipeline().addFirst(new PacketDecoderNew());
 
         downstreamChannel = f.channel();
 
@@ -75,7 +122,7 @@ public class UpstreamHandler extends SimpleChannelInboundHandler<ByteBuf> {
             } else {
                 upstreamChannel.close();
             }
-        });
+        });*/
     }
 
     @Override
