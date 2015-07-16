@@ -20,23 +20,25 @@
 package de.jackwhite20.comix.network;
 
 public class Players {
-    private int max;
-    private int online;
+
+    private String max;
+
+    private String online;
 
     public Players() {
 
     }
 
-    public Players(int max, int online) {
+    public Players(String max, String online) {
         this.max = max;
         this.online = online;
     }
 
-    public int getMax() {
+    public String getMax() {
         return max;
     }
 
-    public int getOnline() {
+    public String getOnline() {
         return online;
     }
 

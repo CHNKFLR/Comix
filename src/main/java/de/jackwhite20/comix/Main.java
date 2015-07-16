@@ -19,11 +19,20 @@
 
 package de.jackwhite20.comix;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import de.jackwhite20.comix.config.ComixConfig;
 import de.jackwhite20.comix.config.Config;
 import de.jackwhite20.comix.console.Console;
 import de.jackwhite20.comix.util.Color;
+import de.jackwhite20.comix.util.TargetData;
 import de.jackwhite20.comix.util.ThreadEvent;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
  * Created by JackWhite20 on 13.07.2015.
@@ -46,9 +55,9 @@ public class Main {
         try {
             comixConfig = Config.loadConfig("");
 
-            System.out.println("Config loaded...");
+            Console.getConsole().println("Config loaded...");
         } catch (Exception e) {
-            System.out.println("Unable to load Comix Config file!");
+            Console.getConsole().println("Unable to load Comix Config file!");
             System.exit(1);
         }
 

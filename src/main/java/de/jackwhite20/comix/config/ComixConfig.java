@@ -35,10 +35,22 @@ public class ComixConfig {
 
     private List<TargetData> targets = new ArrayList<>();
 
-    public ComixConfig(String host, int port, List<TargetData> targets) {
+    private boolean maintenance;
+
+    private String maintenanceDescription;
+
+    private String maintenanceKickMessage;
+
+    private String maintenancePingMessage;
+
+    public ComixConfig(String host, int port, List<TargetData> targets, boolean maintenance, String maintenanceDescription, String maintenanceKickMessage, String maintenancePingMessage) {
         this.host = host;
         this.port = port;
         this.targets = targets;
+        this.maintenance = maintenance;
+        this.maintenanceDescription = maintenanceDescription;
+        this.maintenanceKickMessage = maintenanceKickMessage;
+        this.maintenancePingMessage = maintenancePingMessage;
     }
 
     public String getHost() {
@@ -65,12 +77,48 @@ public class ComixConfig {
         this.targets = targets;
     }
 
+    public boolean isMaintenance() {
+        return maintenance;
+    }
+
+    public void setMaintenance(boolean maintenance) {
+        this.maintenance = maintenance;
+    }
+
+    public String getMaintenanceDescription() {
+        return maintenanceDescription;
+    }
+
+    public void setMaintenanceDescription(String maintenanceDescription) {
+        this.maintenanceDescription = maintenanceDescription;
+    }
+
+    public String getMaintenanceKickMessage() {
+        return maintenanceKickMessage;
+    }
+
+    public void setMaintenanceKickMessage(String maintenanceKickMessage) {
+        this.maintenanceKickMessage = maintenanceKickMessage;
+    }
+
+    public String getMaintenancePingMessage() {
+        return maintenancePingMessage;
+    }
+
+    public void setMaintenancePingMessage(String maintenancePingMessage) {
+        this.maintenancePingMessage = maintenancePingMessage;
+    }
+
     @Override
     public String toString() {
         return "ComixConfig{" +
                 "host='" + host + '\'' +
                 ", port=" + port +
                 ", targets=" + targets +
+                ", maintenance=" + maintenance +
+                ", maintenanceDescription='" + maintenanceDescription + '\'' +
+                ", maintenanceKickMessage='" + maintenanceKickMessage + '\'' +
+                ", maintenancePingMessage='" + maintenancePingMessage + '\'' +
                 '}';
     }
 

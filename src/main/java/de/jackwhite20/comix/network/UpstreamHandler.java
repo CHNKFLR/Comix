@@ -23,7 +23,6 @@ import de.jackwhite20.comix.Comix;
 import de.jackwhite20.comix.console.Console;
 import de.jackwhite20.comix.strategy.BalancingStrategy;
 import de.jackwhite20.comix.util.TargetData;
-import de.jackwhite20.comix.util.ThreadEvent;
 import de.jackwhite20.comix.util.Util;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
@@ -37,6 +36,8 @@ import java.net.InetSocketAddress;
  */
 public class UpstreamHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
+    private ComixClient client;
+
     private BalancingStrategy strategy;
 
     private Channel upstreamChannel;
@@ -45,6 +46,20 @@ public class UpstreamHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
     public UpstreamHandler(BalancingStrategy strategy) {
         this.strategy = strategy;
+    }
+
+    public DownstreamHandler downstreamHandler;
+
+    public DownstreamHandler getDownstreamHandler() {
+        return downstreamHandler;
+    }
+
+    public void setClient(ComixClient client) {
+        this.client = client;
+    }
+
+    public Channel getUpstreamChannel() {
+        return upstreamChannel;
     }
 
     public void startProxying() throws  Exception {
@@ -104,7 +119,7 @@ public class UpstreamHandler extends SimpleChannelInboundHandler<ByteBuf> {
                 .option(ChannelOption.AUTO_READ, false)
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 2000)
                 //.handler(new PacketDownstreamDecoder())
-                .handler(new DownstreamHandler(upstreamChannel));
+                .handler(downstreamHandler = new DownstreamHandler(upstreamChannel));
 
         ChannelFuture f = bootstrap.connect(target.getHost(), target.getPort());
 
@@ -141,6 +156,9 @@ public class UpstreamHandler extends SimpleChannelInboundHandler<ByteBuf> {
             if (downstreamChannel.isActive()) {
                 downstreamChannel.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE);
             }
+
+            if(client != null)
+                Comix.getInstance().removeClient(client);
 
             Console.getConsole().println("[" + Util.formatSocketAddress(ctx.channel().remoteAddress()) + "] -> UpstreamHandler has disconnected");
         }

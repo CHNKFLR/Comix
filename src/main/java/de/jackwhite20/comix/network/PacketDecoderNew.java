@@ -19,27 +19,15 @@
 
 package de.jackwhite20.comix.network;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import de.jackwhite20.comix.Comix;
 import de.jackwhite20.comix.console.Console;
 import de.jackwhite20.comix.util.Protocol;
-import de.jackwhite20.comix.util.TargetData;
-import de.jackwhite20.comix.util.ThreadEvent;
-import de.jackwhite20.comix.util.Util;
-import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufUtil;
 import io.netty.buffer.Unpooled;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelOption;
 import io.netty.handler.codec.MessageToMessageDecoder;
 
-import java.net.InetSocketAddress;
 import java.util.List;
-import java.util.regex.Pattern;
 
 /**
  * Created by JackWhite20 on 14.07.2015.
@@ -59,6 +47,9 @@ public class PacketDecoderNew extends MessageToMessageDecoder<ByteBuf> {
         try {
             ByteBuf buffer = byteBuf.retain();
 
+            if(buffer.readableBytes() <= 1)
+                return;
+
             Protocol.readVarInt(buffer); // Length
 
             if(buffer.readableBytes() <= 0)
@@ -75,6 +66,7 @@ public class PacketDecoderNew extends MessageToMessageDecoder<ByteBuf> {
                 if (state == 1) {
                     ByteBuf responseBuffer = Unpooled.buffer();
                     String response = Comix.getInstance().getStatusResponseString();
+                    response = response.replace("%online%", "" + Comix.getInstance().getClientsOnline());
                     Protocol.writeVarInt(3 + response.length(), responseBuffer); // Size
                     Protocol.writeVarInt(0, responseBuffer); // Packet id
                     Protocol.writeString(response, responseBuffer); // Data as json string
@@ -91,6 +83,17 @@ public class PacketDecoderNew extends MessageToMessageDecoder<ByteBuf> {
 
                     return;
                 } else if (state == 2) {
+                    if(Comix.getInstance().getComixConfig().isMaintenance()) {
+                        ByteBuf test = Unpooled.buffer();
+                        String text = Comix.getInstance().getComixConfig().getMaintenanceKickMessage();
+                        Protocol.writeVarInt(2 + text.length(), test);
+                        Protocol.writeVarInt(0, test);
+                        Protocol.writeString(text, test);
+                        channelHandlerContext.writeAndFlush(test);
+
+                        channelHandlerContext.close();
+                        return;
+                    }
                     //upstreamHandler.startProxying();
 
                     String name = Protocol.readString(buffer);
@@ -98,6 +101,10 @@ public class PacketDecoderNew extends MessageToMessageDecoder<ByteBuf> {
                     channelHandlerContext.channel().pipeline().removeFirst();
 
                     Console.getConsole().println("Player logged in: " + name);
+
+                    ComixClient comixClient = new ComixClient(name, upstreamHandler.getDownstreamHandler(), upstreamHandler);
+                    Comix.getInstance().addClient(comixClient);
+                    upstreamHandler.setClient(comixClient);
 
                     list.add(copy.retain());
                 }

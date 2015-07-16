@@ -28,7 +28,6 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageDecoder;
 
 import java.util.List;
-import java.util.UUID;
 
 /**
  * Created by JackWhite20 on 14.07.2015.

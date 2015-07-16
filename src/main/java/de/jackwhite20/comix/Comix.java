@@ -22,6 +22,7 @@ package de.jackwhite20.comix;
 import com.google.gson.Gson;
 import de.jackwhite20.comix.config.ComixConfig;
 import de.jackwhite20.comix.console.Console;
+import de.jackwhite20.comix.network.ComixClient;
 import de.jackwhite20.comix.network.PacketDecoderNew;
 import de.jackwhite20.comix.network.StatusResponse;
 import de.jackwhite20.comix.network.UpstreamHandler;
@@ -29,6 +30,7 @@ import de.jackwhite20.comix.strategy.BalancingStrategy;
 import de.jackwhite20.comix.strategy.RoundRobinBalancingStrategy;
 import de.jackwhite20.comix.util.TargetData;
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.*;
 import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.group.DefaultChannelGroup;
@@ -42,6 +44,7 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -75,6 +78,8 @@ public class Comix {
 
     private List<String> ipBlacklist = new ArrayList<>();
 
+    private List<ComixClient> clients = Collections.synchronizedList(new ArrayList<ComixClient>());
+
     public Comix(ComixConfig comixConfig) {
         instance = this;
         this.comixConfig = comixConfig;
@@ -89,6 +94,8 @@ public class Comix {
         balancingStrategy = new RoundRobinBalancingStrategy(targets);
 
         channelGroup = new DefaultChannelGroup("clients", GlobalEventExecutor.INSTANCE);
+
+
 
         bossGroup = new NioEventLoopGroup();
         workerGroup = new NioEventLoopGroup();
@@ -116,7 +123,7 @@ public class Comix {
                             }
 
                             UpstreamHandler upstreamHandler = new UpstreamHandler(balancingStrategy);
-                            //p.addFirst(new IpFilterHandler());
+                            //p.addFirst(trafficHandler);
                             //p.addFirst(new IpFilterHandler(balancingStrategy));
                             p.addFirst(new PacketDecoderNew(upstreamHandler));
                             //p.addFirst(new PacketDecoder());
@@ -209,7 +216,10 @@ public class Comix {
             Console.getConsole().println("Favicon loaded...");
 
             statusResponse = new Gson().fromJson(stringBuilder.toString(), StatusResponse.class);
-            statusResponseString = "{\"version\":{\"name\":\"" + statusResponse.getVersion().getName() + "\",\"protocol\":" + statusResponse.getVersion().getProtocol() + "},\"players\":{\"max\":" + statusResponse.getPlayers().getMax() + ",\"online\":" + statusResponse.getPlayers().getOnline() + "},\"description\":\"" + statusResponse.getDescription() + "\",\"favicon\":\"data:image/png;base64," + faviconString + "\",\"modinfo\":{\"type\":\"FML\",\"modList\":[]}}";
+            if(!comixConfig.isMaintenance())
+                statusResponseString = "{\"version\":{\"name\":\"" + statusResponse.getVersion().getName() + "\",\"protocol\":" + statusResponse.getVersion().getProtocol() + "},\"players\":{\"max\":" + statusResponse.getPlayers().getMax() + ",\"online\":" + statusResponse.getPlayers().getOnline() + "},\"description\":\"" + statusResponse.getDescription() + "\",\"favicon\":\"data:image/png;base64," + faviconString + "\",\"modinfo\":{\"type\":\"FML\",\"modList\":[]}}";
+            else
+                statusResponseString = "{\"version\":{\"name\":\"" + comixConfig.getMaintenancePingMessage() + "\",\"protocol\":0},\"players\":{\"max\":" + statusResponse.getPlayers().getMax() + ",\"online\":" + statusResponse.getPlayers().getOnline() + "},\"description\":\"" + comixConfig.getMaintenanceDescription() + "\",\"favicon\":\"data:image/png;base64," + faviconString + "\",\"modinfo\":{\"type\":\"FML\",\"modList\":[]}}";
 
             Console.getConsole().println("Status Response loaded...");
         } catch (Exception e) {
@@ -218,8 +228,28 @@ public class Comix {
         }
     }
 
+    public void kick(ComixClient comixClient, ByteBuf buffer) {
+        clients.stream().filter(c -> c.equals(comixClient)).forEach(c -> c.getUpstreamHandler().getUpstreamChannel().writeAndFlush(buffer));
+    }
+
+    public void broadcast(ByteBuf buffer) {
+        clients.forEach(comixClient -> comixClient.getUpstreamHandler().getUpstreamChannel().writeAndFlush(buffer));
+    }
+
     public void addChannel(Channel channel) {
         channelGroup.add(channel);
+    }
+
+    public void addClient(ComixClient comixClient) {
+        clients.add(comixClient);
+    }
+
+    public void removeClient(ComixClient comixClient) {
+        clients.remove(comixClient);
+    }
+
+    public int getClientsOnline() {
+        return clients.size();
     }
 
     public ComixConfig getComixConfig() {

@@ -19,10 +19,8 @@
 
 package de.jackwhite20.comix.util;
 
-import de.jackwhite20.comix.console.Console;
 import io.netty.buffer.ByteBuf;
 
-import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.UUID;
 
