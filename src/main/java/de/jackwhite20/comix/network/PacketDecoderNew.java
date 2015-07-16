@@ -59,7 +59,7 @@ public class PacketDecoderNew extends MessageToMessageDecoder<ByteBuf> {
         try {
             ByteBuf buffer = byteBuf.retain();
 
-            Protocol.readVarInt(buffer);
+            Protocol.readVarInt(buffer); // Length
 
             if(buffer.readableBytes() <= 0)
                 return;

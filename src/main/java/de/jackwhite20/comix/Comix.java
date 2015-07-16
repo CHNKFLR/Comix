@@ -73,6 +73,8 @@ public class Comix {
 
     private NioEventLoopGroup workerGroup;
 
+    private List<String> ipBlacklist = new ArrayList<>();
+
     public Comix(ComixConfig comixConfig) {
         instance = this;
         this.comixConfig = comixConfig;
@@ -106,8 +108,16 @@ public class Comix {
                         @Override
                         public void initChannel(SocketChannel ch) throws Exception {
                             ChannelPipeline p = ch.pipeline();
+
+                            // Simple IP-Blacklist
+                            if(ipBlacklist.contains(ch.remoteAddress().getAddress().getHostAddress())) {
+                                ch.close();
+                                return;
+                            }
+
                             UpstreamHandler upstreamHandler = new UpstreamHandler(balancingStrategy);
                             //p.addFirst(new IpFilterHandler());
+                            //p.addFirst(new IpFilterHandler(balancingStrategy));
                             p.addFirst(new PacketDecoderNew(upstreamHandler));
                             //p.addFirst(new PacketDecoder());
                             //p.addFirst(new PacketDownstreamDecoder());
@@ -120,9 +130,11 @@ public class Comix {
 
             ChannelFuture f = bootstrap.bind(comixConfig.getPort()).sync();
 
-            Console.getConsole().println("Comix is started!");
+            loadIpBlacklist();
 
             loadStatusResponse();
+
+            Console.getConsole().println("Comix is started!");
 
             f.channel().closeFuture().sync();
         } catch (Exception e) {
@@ -137,6 +149,24 @@ public class Comix {
         channelGroup.close();
         bossGroup.shutdownGracefully();
         workerGroup.shutdownGracefully();
+    }
+
+    private void loadIpBlacklist() {
+        try {
+            new File("ip-blacklist.comix").createNewFile();
+
+            BufferedReader bufferedReader = new BufferedReader(new FileReader("ip-blacklist.comix"));
+
+            String line;
+            while ((line = bufferedReader.readLine()) != null) {
+                if(line != "")
+                    ipBlacklist.add(line);
+            }
+
+            Console.getConsole().println("IP-Blacklist", (ipBlacklist.size() == 0) ? "File loaded..." : ipBlacklist.size() + " IPs loaded...");
+        } catch (Exception e) {
+            Console.getConsole().println("Error loading ip-blacklist.comix: " + e.getMessage());
+        }
     }
 
     public String replaceColor(String input) {
@@ -176,10 +206,12 @@ public class Comix {
 
             String faviconString = encodeToString(ImageIO.read(new File("favicon.png")), "png");
 
+            Console.getConsole().println("Favicon loaded...");
+
             statusResponse = new Gson().fromJson(stringBuilder.toString(), StatusResponse.class);
             statusResponseString = "{\"version\":{\"name\":\"" + statusResponse.getVersion().getName() + "\",\"protocol\":" + statusResponse.getVersion().getProtocol() + "},\"players\":{\"max\":" + statusResponse.getPlayers().getMax() + ",\"online\":" + statusResponse.getPlayers().getOnline() + "},\"description\":\"" + statusResponse.getDescription() + "\",\"favicon\":\"data:image/png;base64," + faviconString + "\",\"modinfo\":{\"type\":\"FML\",\"modList\":[]}}";
 
-            Console.getConsole().println("StatusResponse string loaded...");
+            Console.getConsole().println("Status Response loaded...");
         } catch (Exception e) {
             Console.getConsole().println("Error loading status.comix");
             e.printStackTrace();

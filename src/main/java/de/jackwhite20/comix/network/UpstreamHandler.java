@@ -92,7 +92,7 @@ public class UpstreamHandler extends SimpleChannelInboundHandler<ByteBuf> {
         //upstreamChannel.read();
         //Comix.getInstance().addChannel(upstreamChannel);
 
-        Console.getConsole().println("[/" + Util.formatSocketAddress(upstreamChannel.remoteAddress()) + "] -> UpstreamHandler has connected");
+        Console.getConsole().println("[" + Util.formatSocketAddress(upstreamChannel.remoteAddress()) + "] -> UpstreamHandler has connected");
 
         InetSocketAddress address = (InetSocketAddress) upstreamChannel.remoteAddress();
         TargetData target = this.strategy.selectTarget(address.getHostName(), address.getPort());

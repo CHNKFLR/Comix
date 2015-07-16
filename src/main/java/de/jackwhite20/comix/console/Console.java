@@ -80,6 +80,10 @@ public class Console implements Runnable {
         }
     }
 
+    public void println(String tag, String line) {
+        println("[" + tag + "] " + line);
+    }
+
     private void stashLine() {
         stashed = consoleReader.getCursorBuffer().copy();
         try {

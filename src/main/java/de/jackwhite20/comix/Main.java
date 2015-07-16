@@ -31,16 +31,6 @@ import de.jackwhite20.comix.util.ThreadEvent;
 public class Main {
 
     public static void main(String[] args) {
-        ComixConfig comixConfig = null;
-        try {
-            comixConfig = Config.loadConfig("");
-
-            System.out.println("Config loaded...");
-        } catch (Exception e) {
-            System.out.println("Unable to load Comix Config file!");
-            System.exit(1);
-        }
-
         ThreadEvent threadEvent = new ThreadEvent();
 
         Console console = new Console("Comix > ", Color.CYAN, threadEvent);
@@ -50,6 +40,16 @@ public class Main {
             threadEvent.await();
         } catch (InterruptedException e) {
             e.printStackTrace();
+        }
+
+        ComixConfig comixConfig = null;
+        try {
+            comixConfig = Config.loadConfig("");
+
+            System.out.println("Config loaded...");
+        } catch (Exception e) {
+            System.out.println("Unable to load Comix Config file!");
+            System.exit(1);
         }
 
         Comix comix = new Comix(comixConfig);
