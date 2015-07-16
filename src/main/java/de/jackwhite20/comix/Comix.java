@@ -104,7 +104,7 @@ public class Comix {
                         public void initChannel(SocketChannel ch) throws Exception {
                             ChannelPipeline p = ch.pipeline();
                             UpstreamHandler upstreamHandler = new UpstreamHandler(balancingStrategy);
-
+                            //p.addFirst(new IpFilterHandler());
                             p.addFirst(new PacketDecoderNew(upstreamHandler));
                             //p.addFirst(new PacketDecoder());
                             //p.addFirst(new PacketDownstreamDecoder());

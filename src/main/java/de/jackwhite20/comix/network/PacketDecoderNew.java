@@ -29,6 +29,7 @@ import de.jackwhite20.comix.util.ThreadEvent;
 import de.jackwhite20.comix.util.Util;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufUtil;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -58,17 +59,20 @@ public class PacketDecoderNew extends MessageToMessageDecoder<ByteBuf> {
         try {
             ByteBuf buffer = byteBuf.retain();
 
-            /*int length = */Protocol.readVarInt2(buffer);
+            Protocol.readVarInt(buffer);
 
-            int packetId = Protocol.readVarInt2(buffer);
+            if(buffer.readableBytes() <= 0)
+                return;
+
+            int packetId = Protocol.readVarInt(buffer);
 
             if (packetId == 0 && buffer.readableBytes() > 0) {
                 //Console.getConsole().println("Handshake Packet: " + buffer.readableBytes() + "bytes");
 
-                int version = Protocol.readVarInt(buffer);
-                String ip = Protocol.readString(buffer);
-                int port = buffer.readUnsignedShort();
-                int state = Protocol.readVarInt(buffer);
+                int version = Protocol.readVarInt(buffer); // Protocol Version
+                String ip = Protocol.readString(buffer); // Ip
+                int port = buffer.readUnsignedShort(); // Port
+                int state = Protocol.readVarInt(buffer); // State
 
                 //Console.getConsole().println("State: " + state);
 
@@ -79,39 +83,31 @@ public class PacketDecoderNew extends MessageToMessageDecoder<ByteBuf> {
                     Protocol.writeVarInt(3 + response.length(), responseBuffer); // Size, not used but needed
                     Protocol.writeVarInt(0, responseBuffer); // Packet id
                     Protocol.writeString(response, responseBuffer); // Data as json string
-                    channelHandlerContext.writeAndFlush(responseBuffer);
+                    channelHandlerContext.writeAndFlush(responseBuffer.retain());
+
+                    ByteBuf pingResponse = Unpooled.buffer();
+                    Protocol.writeVarInt(9, pingResponse); // Size?
+                    Protocol.writeVarInt(1, pingResponse); // Packet id
+                    pingResponse.writeLong(System.currentTimeMillis()); // Read long from client
+                    channelHandlerContext.writeAndFlush(pingResponse.retain());
+
+                    channelHandlerContext.channel().pipeline().removeFirst();
+                    channelHandlerContext.close();
+
+                    return;
                     //Console.getConsole().println("Finished...");
                     //list.add(copy.retain());
                 } else if (state == 2) {
-                    //upstreamHandler.startProxying();
-
-                    Console.getConsole().println("HANDSHAKE: " + version + " - " + ip + ":" + port + " - " + "LOGIN");
+                    //Console.getConsole().println("HANDSHAKE: " + version + " - " + ip + ":" + port + " - " + "LOGIN");
                     String name = Protocol.readString(buffer);
 
                     channelHandlerContext.channel().pipeline().removeFirst();
 
-                    Console.getConsole().println("AUTH WITH NAME: " + name);
+                    Console.getConsole().println("Player logged in: " + name);
                     Console.getConsole().println("--------------------------------------------------");
 
                     list.add(copy.retain());
                 }
-            } else if (packetId == 1) {
-                //Console.getConsole().println("Ping request size: " + buffer.readableBytes());
-
-                long pingLong = buffer.readLong();
-
-                Console.getConsole().println("Ping: " + pingLong + " Time: " + (System.currentTimeMillis() - pingLong) + "ms");
-
-                ByteBuf pingResponse = Unpooled.buffer();
-                Protocol.writeVarInt(8, pingResponse); // Size?
-                Protocol.writeVarInt(1, pingResponse); // Packet id
-                pingResponse.writeLong(pingLong);
-                channelHandlerContext.writeAndFlush(pingResponse);
-                //Console.getConsole().println("Some ping request!!!!!!!!!!!!");
-
-                channelHandlerContext.channel().close();
-
-                //list.add(copy.retain());
             } else {
                 list.add(copy.retain());
             }
