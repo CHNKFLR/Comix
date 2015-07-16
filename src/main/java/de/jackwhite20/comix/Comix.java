@@ -36,9 +36,11 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.concurrent.GlobalEventExecutor;
+import sun.misc.BASE64Encoder;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -96,6 +98,7 @@ public class Comix {
                     .option(ChannelOption.TCP_NODELAY, true)
                     .option(ChannelOption.SO_BACKLOG, 200)
                     .option(ChannelOption.SO_REUSEADDR, true)
+                    .option(ChannelOption.SO_KEEPALIVE, true)
                     .childOption(ChannelOption.TCP_NODELAY, true)
                     .childOption(ChannelOption.AUTO_READ, false)
                     .childHandler(new ChannelInitializer<SocketChannel>() {
@@ -110,7 +113,7 @@ public class Comix {
                             //p.addFirst(new PacketDownstreamDecoder());
                             p.addLast(upstreamHandler);
 
-                            Console.getConsole().println("[/" + p.channel().remoteAddress() + "] <-> InitialHandler has connected");
+                            Console.getConsole().println("[/" + p.channel().remoteAddress() + "] -> InitialHandler has connected");
                         }
 
                     });
@@ -140,6 +143,26 @@ public class Comix {
         return input.replace("§", "\\u00A7");
     }
 
+    public static String encodeToString(BufferedImage image, String type) {
+        String imageString = null;
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+
+        try {
+            ImageIO.write(image, type, bos);
+            byte[] imageBytes = bos.toByteArray();
+
+            BASE64Encoder encoder = new BASE64Encoder();
+            imageString = encoder.encode(imageBytes);
+
+            bos.close();
+        } catch (IOException e) {
+            Console.getConsole().println("Favicon could not be loaded: " + e.getMessage());
+            return "";
+        }
+
+        return imageString;
+    }
+
     public void loadStatusResponse() {
         try {
             BufferedReader bufferedReader = new BufferedReader(new FileReader("status.comix"));
@@ -151,8 +174,10 @@ public class Comix {
                 stringBuilder.append(System.lineSeparator());
             }
 
+            String faviconString = encodeToString(ImageIO.read(new File("favicon.png")), "png");
+
             statusResponse = new Gson().fromJson(stringBuilder.toString(), StatusResponse.class);
-            statusResponseString = "{\"version\":{\"name\":\"" + statusResponse.getVersion().getName() + "\",\"protocol\":" + statusResponse.getVersion().getProtocol() + "},\"players\":{\"max\":" + statusResponse.getPlayers().getMax() + ",\"online\":" + statusResponse.getPlayers().getOnline() + "},\"description\":\"" + statusResponse.getDescription() + "\",\"modinfo\":{\"type\":\"FML\",\"modList\":[]}}";
+            statusResponseString = "{\"version\":{\"name\":\"" + statusResponse.getVersion().getName() + "\",\"protocol\":" + statusResponse.getVersion().getProtocol() + "},\"players\":{\"max\":" + statusResponse.getPlayers().getMax() + ",\"online\":" + statusResponse.getPlayers().getOnline() + "},\"description\":\"" + statusResponse.getDescription() + "\",\"favicon\":\"data:image/png;base64," + faviconString + "\",\"modinfo\":{\"type\":\"FML\",\"modList\":[]}}";
 
             Console.getConsole().println("StatusResponse string loaded...");
         } catch (Exception e) {

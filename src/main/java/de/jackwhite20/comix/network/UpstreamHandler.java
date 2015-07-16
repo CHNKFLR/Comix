@@ -58,7 +58,7 @@ public class UpstreamHandler extends SimpleChannelInboundHandler<ByteBuf> {
                 .channel(upstreamChannel.getClass())
                 .option(ChannelOption.TCP_NODELAY, true)
                 .option(ChannelOption.AUTO_READ, false)
-                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 3000)
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 1000)
                 .handler(new DownstreamHandler(upstreamChannel));
 
         ChannelFuture f = bootstrap.connect(target.getHost(), target.getPort());
@@ -68,16 +68,17 @@ public class UpstreamHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
         downstreamChannel = f.channel();
 
+        //downstreamChannel.read();
         //downstreamChannel.writeAndFlush(firstPacket.retain());
 
         f.addListener((future) -> {
             //Console.getConsole().println("isSuccess: " + future.isSuccess());
             if (future.isSuccess()) {
-                upstreamChannel.read();
+                downstreamChannel.read();
 
                 Console.getConsole().println("[" + Util.formatSocketAddress(upstreamChannel.remoteAddress()) + "] <-> [" + Util.formatSocketAddress(f.channel().remoteAddress()) + "] tunneled");
             } else {
-                upstreamChannel.close();
+                downstreamChannel.close();
             }
         });
 
@@ -88,11 +89,10 @@ public class UpstreamHandler extends SimpleChannelInboundHandler<ByteBuf> {
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         upstreamChannel = ctx.channel();
 
-        Comix.getInstance().addChannel(upstreamChannel);
+        //upstreamChannel.read();
+        //Comix.getInstance().addChannel(upstreamChannel);
 
         Console.getConsole().println("[/" + Util.formatSocketAddress(upstreamChannel.remoteAddress()) + "] -> UpstreamHandler has connected");
-
-        //upstreamChannel.read();
 
         InetSocketAddress address = (InetSocketAddress) upstreamChannel.remoteAddress();
         TargetData target = this.strategy.selectTarget(address.getHostName(), address.getPort());

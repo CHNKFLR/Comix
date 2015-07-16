@@ -67,26 +67,21 @@ public class PacketDecoderNew extends MessageToMessageDecoder<ByteBuf> {
             int packetId = Protocol.readVarInt(buffer);
 
             if (packetId == 0 && buffer.readableBytes() > 0) {
-                //Console.getConsole().println("Handshake Packet: " + buffer.readableBytes() + "bytes");
-
-                int version = Protocol.readVarInt(buffer); // Protocol Version
-                String ip = Protocol.readString(buffer); // Ip
-                int port = buffer.readUnsignedShort(); // Port
+                Protocol.readVarInt(buffer); // Protocol Version
+                Protocol.readString(buffer); // Ip
+                buffer.readUnsignedShort(); // Port
                 int state = Protocol.readVarInt(buffer); // State
 
-                //Console.getConsole().println("State: " + state);
-
                 if (state == 1) {
-                    //Console.getConsole().println("Sending response...");
                     ByteBuf responseBuffer = Unpooled.buffer();
                     String response = Comix.getInstance().getStatusResponseString();
-                    Protocol.writeVarInt(3 + response.length(), responseBuffer); // Size, not used but needed
+                    Protocol.writeVarInt(3 + response.length(), responseBuffer); // Size
                     Protocol.writeVarInt(0, responseBuffer); // Packet id
                     Protocol.writeString(response, responseBuffer); // Data as json string
                     channelHandlerContext.writeAndFlush(responseBuffer.retain());
 
                     ByteBuf pingResponse = Unpooled.buffer();
-                    Protocol.writeVarInt(9, pingResponse); // Size?
+                    Protocol.writeVarInt(9, pingResponse); // Size
                     Protocol.writeVarInt(1, pingResponse); // Packet id
                     pingResponse.writeLong(System.currentTimeMillis()); // Read long from client
                     channelHandlerContext.writeAndFlush(pingResponse.retain());
@@ -95,16 +90,14 @@ public class PacketDecoderNew extends MessageToMessageDecoder<ByteBuf> {
                     channelHandlerContext.close();
 
                     return;
-                    //Console.getConsole().println("Finished...");
-                    //list.add(copy.retain());
                 } else if (state == 2) {
-                    //Console.getConsole().println("HANDSHAKE: " + version + " - " + ip + ":" + port + " - " + "LOGIN");
+                    //upstreamHandler.startProxying();
+
                     String name = Protocol.readString(buffer);
 
                     channelHandlerContext.channel().pipeline().removeFirst();
 
                     Console.getConsole().println("Player logged in: " + name);
-                    Console.getConsole().println("--------------------------------------------------");
 
                     list.add(copy.retain());
                 }
