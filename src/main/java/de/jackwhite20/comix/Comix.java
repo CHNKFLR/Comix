@@ -22,19 +22,22 @@ package de.jackwhite20.comix;
 import com.google.gson.Gson;
 import de.jackwhite20.comix.config.ComixConfig;
 import de.jackwhite20.comix.console.Console;
-import de.jackwhite20.comix.network.*;
+import de.jackwhite20.comix.network.ComixClient;
+import de.jackwhite20.comix.network.PacketHandler;
+import de.jackwhite20.comix.network.UpstreamHandler;
+import de.jackwhite20.comix.response.StatusResponse;
 import de.jackwhite20.comix.strategy.BalancingStrategy;
 import de.jackwhite20.comix.strategy.RoundRobinBalancingStrategy;
 import de.jackwhite20.comix.util.TargetData;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.*;
-import io.netty.channel.group.ChannelGroup;
-import io.netty.channel.group.DefaultChannelGroup;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.ChannelPipeline;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.util.concurrent.GlobalEventExecutor;
 import sun.misc.BASE64Encoder;
 
 import javax.imageio.ImageIO;
@@ -57,8 +60,6 @@ public class Comix {
 
     private List<TargetData> targets = new ArrayList<>();
 
-    private ServerBootstrap bootstrap;
-
     private BalancingStrategy balancingStrategy;
 
     private ComixConfig comixConfig;
@@ -66,8 +67,6 @@ public class Comix {
     private StatusResponse statusResponse;
 
     private String statusResponseString;
-
-    private ChannelGroup channelGroup;
 
     private NioEventLoopGroup bossGroup;
 
@@ -90,15 +89,11 @@ public class Comix {
 
         balancingStrategy = new RoundRobinBalancingStrategy(targets);
 
-        channelGroup = new DefaultChannelGroup("clients", GlobalEventExecutor.INSTANCE);
-
-
-
         bossGroup = new NioEventLoopGroup();
         workerGroup = new NioEventLoopGroup();
 
         try {
-            bootstrap = new ServerBootstrap();
+            ServerBootstrap bootstrap = new ServerBootstrap();
             bootstrap.group(bossGroup, workerGroup)
                     .channel(NioServerSocketChannel.class)
                     .option(ChannelOption.TCP_NODELAY, true)
@@ -119,21 +114,13 @@ public class Comix {
                                 return;
                             }
 
-                            //UpstreamHandler upstreamHandler = new UpstreamHandler(balancingStrategy);
-                            //p.addFirst(trafficHandler);
-                            //p.addFirst(new IpFilterHandler(balancingStrategy));
-
                             PacketHandler packetHandler = new PacketHandler();
                             p.addFirst(packetHandler);
 
-                            //p.addFirst(new PacketDecoder());
-
-                            //p.addFirst(new PacketDownstreamDecoder());
-                            UpstreamHandlerNew upstreamHandler = new UpstreamHandlerNew(balancingStrategy);
+                            UpstreamHandler upstreamHandler = new UpstreamHandler(balancingStrategy);
                             p.addLast(upstreamHandler);
 
                             packetHandler.setUpstreamHandler(upstreamHandler);
-                            //packetDecoderNew.setUpstreamHandler(upstreamHandler);
 
                             Console.getConsole().println("[/" + p.channel().remoteAddress() + "] -> InitialHandler has connected");
                         }
@@ -158,7 +145,6 @@ public class Comix {
     }
 
     public void shutdown() {
-        channelGroup.close();
         bossGroup.shutdownGracefully();
         workerGroup.shutdownGracefully();
     }
@@ -233,16 +219,8 @@ public class Comix {
         }
     }
 
-    public void kick(ComixClient comixClient, ByteBuf buffer) {
-        clients.stream().filter(c -> c.equals(comixClient)).forEach(c -> c.getUpstreamHandler().getUpstreamChannel().writeAndFlush(buffer));
-    }
-
     public void broadcast(ByteBuf buffer) {
         clients.forEach(comixClient -> comixClient.getUpstreamHandler().getUpstreamChannel().writeAndFlush(buffer));
-    }
-
-    public void addChannel(Channel channel) {
-        channelGroup.add(channel);
     }
 
     public void addClient(ComixClient comixClient) {
@@ -275,6 +253,14 @@ public class Comix {
 
     public void setBalancingStrategy(BalancingStrategy balancingStrategy) {
         this.balancingStrategy = balancingStrategy;
+    }
+
+    public StatusResponse getStatusResponse() {
+        return statusResponse;
+    }
+
+    public void setStatusResponse(StatusResponse statusResponse) {
+        this.statusResponse = statusResponse;
     }
 
     public static Comix getInstance() {

@@ -21,7 +21,6 @@ package de.jackwhite20.comix.network;
 
 import de.jackwhite20.comix.Comix;
 import de.jackwhite20.comix.console.Console;
-import de.jackwhite20.comix.util.Protocol;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
@@ -34,9 +33,9 @@ import java.util.List;
  */
 public class PacketHandler extends MessageToMessageDecoder<ByteBuf> {
 
-    private UpstreamHandlerNew upstreamHandler;
+    private UpstreamHandler upstreamHandler;
 
-    public void setUpstreamHandler(UpstreamHandlerNew upstreamHandler) {
+    public void setUpstreamHandler(UpstreamHandler upstreamHandler) {
         this.upstreamHandler = upstreamHandler;
     }
 
@@ -108,9 +107,6 @@ public class PacketHandler extends MessageToMessageDecoder<ByteBuf> {
 
                     list.add(copy.retain());
                 }
-            } else {
-                Console.getConsole().println("Relaying");
-                list.add(copy.retain());
             }
 
             copy = null;

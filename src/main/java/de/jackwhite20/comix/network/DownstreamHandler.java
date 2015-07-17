@@ -66,8 +66,6 @@ public class DownstreamHandler extends SimpleChannelInboundHandler<ByteBuf> {
             }
 
             Console.getConsole().println("[" + Util.formatSocketAddress(ctx.channel().remoteAddress()) + "] -> DownstreamHandler has disconnected");
-
-            Console.getConsole().println("------------------------------------------------------------");
         }
     }
 

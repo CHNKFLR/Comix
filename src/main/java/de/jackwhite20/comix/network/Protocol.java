@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.jackwhite20.comix.util;
+package de.jackwhite20.comix.network;
 
 import io.netty.buffer.ByteBuf;
 
@@ -46,12 +46,6 @@ public class Protocol {
         }else {
             return "";
         }
-    }
-
-    public static byte[] readArray(ByteBuf buf) {
-        byte[] ret = new byte[ readVarInt(buf) ];
-        buf.readBytes( ret );
-        return ret;
     }
 
     public static void writeVarInt(int value, ByteBuf output) {
@@ -97,33 +91,6 @@ public class Protocol {
         }
 
         return out;
-    }
-
-    public static int readVarInt2(ByteBuf buf) {
-        int out = 0;
-        int bytes = 0;
-        byte in;
-        while (buf.isReadable()) {
-            in = buf.readByte();
-            out |= (in & 0x7F) << (bytes * 7);
-            if (bytes > 32) {
-                return 0;
-                //throw new IOException("Attempt to read int bigger than allowed for a varint!");
-            }
-            if ((in & 0x80) != 0x80) {
-                break;
-            }
-        }
-        return out;
-    }
-
-    public static void writeUUID(UUID value, ByteBuf output) {
-        output.writeLong(value.getMostSignificantBits());
-        output.writeLong(value.getLeastSignificantBits());
-    }
-
-    public static UUID readUUID(ByteBuf input) {
-        return new UUID(input.readLong(), input.readLong());
     }
 
 }

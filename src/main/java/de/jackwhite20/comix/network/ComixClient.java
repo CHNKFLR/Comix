@@ -28,9 +28,9 @@ public class ComixClient {
 
     private DownstreamHandler downstreamHandler;
 
-    private UpstreamHandlerNew upstreamHandler;
+    private UpstreamHandler upstreamHandler;
 
-    public ComixClient(String name, DownstreamHandler downstreamHandler, UpstreamHandlerNew upstreamHandler) {
+    public ComixClient(String name, DownstreamHandler downstreamHandler, UpstreamHandler upstreamHandler) {
         this.name = name;
         this.downstreamHandler = downstreamHandler;
         this.upstreamHandler = upstreamHandler;
@@ -52,11 +52,11 @@ public class ComixClient {
         this.downstreamHandler = downstreamHandler;
     }
 
-    public UpstreamHandlerNew getUpstreamHandler() {
+    public UpstreamHandler getUpstreamHandler() {
         return upstreamHandler;
     }
 
-    public void setUpstreamHandler(UpstreamHandlerNew upstreamHandler) {
+    public void setUpstreamHandler(UpstreamHandler upstreamHandler) {
         this.upstreamHandler = upstreamHandler;
     }
 

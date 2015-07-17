@@ -30,8 +30,6 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class RoundRobinBalancingStrategy implements BalancingStrategy {
 
-    private Object lock = new Object();
-
     private List<TargetData> targets;
 
     private AtomicInteger currentTarget = new AtomicInteger(0);

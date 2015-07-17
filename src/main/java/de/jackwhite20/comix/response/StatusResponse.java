@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.jackwhite20.comix.network;
+package de.jackwhite20.comix.response;
 
 /**
  * Created by JackWhite20 on 15.07.2015.
