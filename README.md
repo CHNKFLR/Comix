@@ -10,7 +10,10 @@ Users/Clients will connect to the Comix instance. The instance will then act lik
 If you have a large Minecraft Server Network (+400/800 players) it is a very good idea to setup and Multi-Proxy-System with BungeeCord. Instead of using a DNS based Balancing for the BungeeCord Server, you can easily use Comix. If one instance of Comix does not fit your needs, you can easily setup another instance and than use a simple DNS-RR-Balancing for the two or multiple Comix instances.
 
 ### Features
-- IP-Blacklist (Planned)
+- IP-Blacklist
+- Customizable Ping Response (MOTD, online players, max players, etc.)
+- Colored MOTD
+- Maintenance mode (Custom MOTD, custom kick message, custom version string)
 - Logging (Planned)
 - Custom Address and Port binding for the Load-Balancer
 - As many target Server as you want
@@ -18,6 +21,9 @@ If you have a large Minecraft Server Network (+400/800 players) it is a very goo
 - Based on Netty for high performance
 - Monitoring (Planned)
 
-### License
-Licensed under the GNU General Public License, Version 3.0. 
+### Wiki
+[Wiki](https://github.com/JackWhite20/Comix/wiki)
 
+
+### License
+Licensed under the GNU General Public License, Version 3.0.
