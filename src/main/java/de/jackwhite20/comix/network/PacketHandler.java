@@ -92,18 +92,17 @@ public class PacketHandler extends MessageToMessageDecoder<ByteBuf> {
                         channelHandlerContext.close();
                         return;
                     }
-
-                    upstreamHandler.connectDownstream(copy);
-
                     String name = Protocol.readString(buffer);
-
-                    channelHandlerContext.channel().pipeline().remove(this);
-
-                    Console.getConsole().println("Player logged in: " + name);
 
                     ComixClient comixClient = new ComixClient(name, upstreamHandler.getDownstreamHandler(), upstreamHandler);
                     Comix.getInstance().addClient(comixClient);
                     upstreamHandler.setClient(comixClient);
+
+                    upstreamHandler.connectDownstream(copy);
+
+                    channelHandlerContext.channel().pipeline().remove(this);
+
+                    Console.getConsole().println("Player logged in: " + name);
 
                     list.add(copy.retain());
                 }

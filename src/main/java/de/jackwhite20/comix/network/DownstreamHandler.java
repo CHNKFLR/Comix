@@ -20,7 +20,7 @@
 package de.jackwhite20.comix.network;
 
 import de.jackwhite20.comix.console.Console;
-import de.jackwhite20.comix.util.Util;
+import de.jackwhite20.comix.util.TargetData;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
@@ -33,9 +33,12 @@ import io.netty.channel.SimpleChannelInboundHandler;
  */
 public class DownstreamHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
+    private ComixClient client;
+
     private Channel upstreamChannel;
 
-    public DownstreamHandler(Channel upstreamChannel) {
+    public DownstreamHandler(ComixClient client, Channel upstreamChannel) {
+        this.client = client;
         this.upstreamChannel = upstreamChannel;
     }
 
@@ -44,7 +47,7 @@ public class DownstreamHandler extends SimpleChannelInboundHandler<ByteBuf> {
         ctx.read();
         ctx.write(Unpooled.EMPTY_BUFFER);
 
-        Console.getConsole().println("[" + Util.formatSocketAddress(upstreamChannel.remoteAddress()) + "] <-> DownstreamHandler has connected");
+        Console.getConsole().println("[" + client.getName() + "] <-> DownstreamHandler has connected");
     }
 
     @Override
@@ -65,7 +68,7 @@ public class DownstreamHandler extends SimpleChannelInboundHandler<ByteBuf> {
                 upstreamChannel.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE);
             }
 
-            Console.getConsole().println("[" + Util.formatSocketAddress(ctx.channel().remoteAddress()) + "] -> DownstreamHandler has disconnected");
+            Console.getConsole().println("[" + client.getName() + "] -> DownstreamHandler has disconnected");
         }
     }
 

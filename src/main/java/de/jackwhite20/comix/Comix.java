@@ -85,6 +85,9 @@ public class Comix {
     }
 
     public void start() {
+        Console.getConsole().println((targets.size() > 0) ? "Targets:" : "No Target Servers found!");
+        targets.forEach(t -> Console.getConsole().println(t.getName() + " - " + t.getHost() + ":" + t.getPort()));
+
         Console.getConsole().println("Starting Comix on " + balancerHost + ":" + balancerPort + "...");
 
         balancingStrategy = new RoundRobinBalancingStrategy(targets);
@@ -122,7 +125,7 @@ public class Comix {
 
                             packetHandler.setUpstreamHandler(upstreamHandler);
 
-                            Console.getConsole().println("[/" + p.channel().remoteAddress() + "] -> InitialHandler has connected");
+                            Console.getConsole().println("[" + ch.remoteAddress().getAddress().getHostAddress() + "] -> InitialHandler has connected");
                         }
 
                     });
@@ -188,6 +191,8 @@ public class Comix {
             return "";
         }
 
+        Console.getConsole().println("Favicon loaded...");
+
         return imageString;
     }
 
@@ -203,8 +208,6 @@ public class Comix {
             }
 
             String faviconString = encodeToString(ImageIO.read(new File("favicon.png")), "png");
-
-            Console.getConsole().println("Favicon loaded...");
 
             statusResponse = new Gson().fromJson(stringBuilder.toString(), StatusResponse.class);
             if(!comixConfig.isMaintenance())

@@ -62,7 +62,7 @@ public class UpstreamHandler extends SimpleChannelInboundHandler<ByteBuf> {
                 .option(ChannelOption.TCP_NODELAY, true)
                 .option(ChannelOption.AUTO_READ, false)
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 2000)
-                .handler(downstreamHandler = new DownstreamHandler(upstreamChannel));
+                .handler(downstreamHandler = new DownstreamHandler(client, upstreamChannel));
 
         ChannelFuture f = bootstrap.connect(target.getHost(), target.getPort());
         downstreamChannel = f.channel();
@@ -73,7 +73,8 @@ public class UpstreamHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
                 downstreamConnected = true;
 
-                Console.getConsole().println("[" + Util.formatSocketAddress(upstreamChannel.remoteAddress()) + "] <-> [" + Util.formatSocketAddress(f.channel().remoteAddress()) + "] tunneled");
+                Console.getConsole().println("[" + ((client == null) ? Util.formatSocketAddress(upstreamChannel.remoteAddress()) : client.getName()) + "] <-> UpstreamHandler has connected");
+                Console.getConsole().println("[" + ((client == null) ? Util.formatSocketAddress(upstreamChannel.remoteAddress()) : client.getName()) + "] <-> [Comix] <-> [" + target.getName() + "] tunneled");
             } else {
                 upstreamChannel.close();
             }
@@ -113,7 +114,7 @@ public class UpstreamHandler extends SimpleChannelInboundHandler<ByteBuf> {
             if(client != null)
                 Comix.getInstance().removeClient(client);
 
-            Console.getConsole().println("[" + Util.formatSocketAddress(ctx.channel().remoteAddress()) + "] -> UpstreamHandler has disconnected");
+            Console.getConsole().println("[" + client.getName() + "] -> UpstreamHandler has disconnected");
         }
     }
 

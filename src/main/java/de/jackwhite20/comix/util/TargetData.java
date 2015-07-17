@@ -24,6 +24,8 @@ package de.jackwhite20.comix.util;
  */
 public class TargetData {
 
+    private String name;
+
     private String host;
 
     private int port;
@@ -52,6 +54,14 @@ public class TargetData {
 
     public void setPort(int port) {
         this.port = port;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
 }

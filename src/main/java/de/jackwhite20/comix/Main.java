@@ -51,6 +51,8 @@ public class Main {
             e.printStackTrace();
         }
 
+        Console.getConsole().println("------ Comix v.0.1 ------");
+
         ComixConfig comixConfig = null;
         try {
             comixConfig = Config.loadConfig("");
