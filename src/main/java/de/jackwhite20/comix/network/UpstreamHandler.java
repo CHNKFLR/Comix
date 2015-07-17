@@ -61,6 +61,7 @@ public class UpstreamHandler extends SimpleChannelInboundHandler<ByteBuf> {
                 .channel(upstreamChannel.getClass())
                 .option(ChannelOption.TCP_NODELAY, true)
                 .option(ChannelOption.AUTO_READ, false)
+                .option(ChannelOption.SO_TIMEOUT, 5000)
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 2000)
                 .handler(downstreamHandler = new DownstreamHandler(client, upstreamChannel));
 
@@ -114,7 +115,7 @@ public class UpstreamHandler extends SimpleChannelInboundHandler<ByteBuf> {
             if(client != null)
                 Comix.getInstance().removeClient(client);
 
-            Comix.getLogger().log(Level.INFO, "[" + client.getName() + "] -> UpstreamHandler has disconnected");
+            Comix.getLogger().log(Level.INFO, "[" + ((client != null) ? client.getName() : Util.formatSocketAddress(upstreamChannel.remoteAddress())) + "] -> UpstreamHandler has disconnected");
         }
     }
 

@@ -81,18 +81,31 @@ public class PacketHandler extends MessageToMessageDecoder<ByteBuf> {
                     channelHandlerContext.close();
                     return;
                 } else if (state == 2) {
+                    if(buffer.readableBytes() <= 0) {
+                        channelHandlerContext.close();
+                        return;
+                    }
+
+                    String name = Protocol.readString(buffer);
+
+                    //TODO: Improve
                     if(Comix.getInstance().getComixConfig().isMaintenance()) {
-                        ByteBuf test = Unpooled.buffer();
-                        String text = Comix.getInstance().getComixConfig().getMaintenanceKickMessage();
-                        Protocol.writeVarInt(2 + text.length(), test);
-                        Protocol.writeVarInt(0, test);
-                        Protocol.writeString(text, test);
-                        channelHandlerContext.writeAndFlush(test);
+                        if(Comix.getInstance().isWhitelistEnabled()) {
+                            if(!Comix.getInstance().isWhitelisted(name)) {
+                                kick(channelHandlerContext, Comix.getInstance().getWhitelistKickMessage());
+                            }
+                        }else {
+                            kick(channelHandlerContext, Comix.getInstance().getComixConfig().getMaintenanceKickMessage());
+                        }
+
+                        channelHandlerContext.close();
+                        return;
+                    }else if(Comix.getInstance().isWhitelistEnabled() && !Comix.getInstance().isWhitelisted(name)) {
+                        kick(channelHandlerContext, Comix.getInstance().getWhitelistKickMessage());
 
                         channelHandlerContext.close();
                         return;
                     }
-                    String name = Protocol.readString(buffer);
 
                     ComixClient comixClient = new ComixClient(name, upstreamHandler.getDownstreamHandler(), upstreamHandler);
                     Comix.getInstance().addClient(comixClient);
@@ -113,6 +126,14 @@ public class PacketHandler extends MessageToMessageDecoder<ByteBuf> {
             if (copy != null)
                 copy.release();
         }
+    }
+
+    private void kick(ChannelHandlerContext channelHandlerContext, String text) {
+        ByteBuf test = Unpooled.buffer();
+        Protocol.writeVarInt(2 + text.length(), test);
+        Protocol.writeVarInt(0, test);
+        Protocol.writeString(text, test);
+        channelHandlerContext.writeAndFlush(test);
     }
 
 }

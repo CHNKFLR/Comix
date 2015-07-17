@@ -33,6 +33,7 @@ import de.jackwhite20.comix.response.StatusResponse;
 import de.jackwhite20.comix.strategy.BalancingStrategy;
 import de.jackwhite20.comix.strategy.RoundRobinBalancingStrategy;
 import de.jackwhite20.comix.util.TargetData;
+import de.jackwhite20.comix.whitelist.Whitelist;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelFuture;
@@ -90,6 +91,8 @@ public class Comix implements Runnable {
     private NioEventLoopGroup workerGroup;
 
     private List<String> ipBlacklist = new ArrayList<>();
+
+    private Whitelist whitelist;
 
     private List<ComixClient> clients = Collections.synchronizedList(new ArrayList<ComixClient>());
 
@@ -153,6 +156,7 @@ public class Comix implements Runnable {
                     .option(ChannelOption.SO_KEEPALIVE, true)
                     .childOption(ChannelOption.TCP_NODELAY, true)
                     .childOption(ChannelOption.AUTO_READ, false)
+                    .childOption(ChannelOption.SO_TIMEOUT, 5000)
                     .childHandler(new ChannelInitializer<SocketChannel>() {
 
                         @Override
@@ -160,7 +164,7 @@ public class Comix implements Runnable {
                             ChannelPipeline p = ch.pipeline();
 
                             // Simple IP-Blacklist
-                            if(ipBlacklist.contains(ch.remoteAddress().getAddress().getHostAddress())) {
+                            if (ipBlacklist.contains(ch.remoteAddress().getAddress().getHostAddress())) {
                                 ch.close();
                                 return;
                             }
@@ -180,9 +184,7 @@ public class Comix implements Runnable {
 
             ChannelFuture f = bootstrap.bind(comixConfig.getPort()).sync();
 
-            loadIpBlacklist();
-
-            loadStatusResponse();
+            reload();
 
             logger.log(Level.INFO, "Comix is started!");
 
@@ -203,6 +205,7 @@ public class Comix implements Runnable {
 
     public void reload() {
         loadIpBlacklist();
+        loadWhitelist();
         loadStatusResponse();
     }
 
@@ -253,6 +256,42 @@ public class Comix implements Runnable {
             logger.log(Level.INFO, "Unable to load Comix Config file!");
             System.exit(1);
         }
+    }
+
+    private void loadWhitelist() {
+        try {
+            new File("whitelist.comix").createNewFile();
+
+            BufferedReader bufferedReader = new BufferedReader(new FileReader("whitelist.comix"));
+            StringBuilder stringBuilder = new StringBuilder();
+
+            String line;
+            while ((line = bufferedReader.readLine()) != null) {
+                stringBuilder.append(line);
+                stringBuilder.append(System.lineSeparator());
+            }
+
+            whitelist = new Gson().fromJson(stringBuilder.toString(), Whitelist.class);
+
+            if(!whitelist.isEnabled())
+                logger.log(Level.INFO, "Whitelist loaded...");
+            else
+                logger.log(Level.INFO, "Whitelisted: " + String.join(", ", whitelist.getNames()));
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Error while loading 'whitelist.comix'!");
+        }
+    }
+
+    public boolean isWhitelisted(String name) {
+        return whitelist.getNames().contains(name);
+    }
+
+    public boolean isWhitelistEnabled() {
+        return whitelist.isEnabled();
+    }
+
+    public String getWhitelistKickMessage() {
+        return whitelist.getMessage();
     }
 
     public void shutdown() {
