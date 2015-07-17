@@ -19,14 +19,15 @@
 
 package de.jackwhite20.comix.network;
 
-import de.jackwhite20.comix.console.Console;
-import de.jackwhite20.comix.util.TargetData;
+import de.jackwhite20.comix.Comix;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+
+import java.util.logging.Level;
 
 /**
  * Created by JackWhite20 on 13.07.2015.
@@ -47,7 +48,7 @@ public class DownstreamHandler extends SimpleChannelInboundHandler<ByteBuf> {
         ctx.read();
         ctx.write(Unpooled.EMPTY_BUFFER);
 
-        Console.getConsole().println("[" + client.getName() + "] <-> DownstreamHandler has connected");
+        Comix.getLogger().log(Level.INFO, "[" + client.getName() + "] <-> DownstreamHandler has connected");
     }
 
     @Override
@@ -68,7 +69,7 @@ public class DownstreamHandler extends SimpleChannelInboundHandler<ByteBuf> {
                 upstreamChannel.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE);
             }
 
-            Console.getConsole().println("[" + client.getName() + "] -> DownstreamHandler has disconnected");
+            Comix.getLogger().log(Level.INFO, "[" + client.getName() + "] -> DownstreamHandler has disconnected");
         }
     }
 

@@ -20,8 +20,9 @@
 package de.jackwhite20.comix;
 
 import com.google.gson.Gson;
+import de.jackwhite20.comix.Logger.ComixLogger;
 import de.jackwhite20.comix.config.ComixConfig;
-import de.jackwhite20.comix.console.Console;
+import de.jackwhite20.comix.config.Config;
 import de.jackwhite20.comix.network.ComixClient;
 import de.jackwhite20.comix.network.PacketHandler;
 import de.jackwhite20.comix.network.UpstreamHandler;
@@ -38,6 +39,9 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.util.ResourceLeakDetector;
+import jline.console.ConsoleReader;
+import org.fusesource.jansi.AnsiConsole;
 import sun.misc.BASE64Encoder;
 
 import javax.imageio.ImageIO;
@@ -46,13 +50,22 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.LogManager;
+import java.util.logging.Logger;
 
 /**
  * Created by JackWhite20 on 13.07.2015.
  */
-public class Comix {
+public class Comix implements Runnable {
 
     private static Comix instance;
+
+    private static Logger logger;
+
+    private static ConsoleReader consoleReader;
+
+    private boolean running;
 
     private String balancerHost;
 
@@ -76,19 +89,36 @@ public class Comix {
 
     private List<ComixClient> clients = Collections.synchronizedList(new ArrayList<ComixClient>());
 
-    public Comix(ComixConfig comixConfig) {
+    public Comix() {
         instance = this;
-        this.comixConfig = comixConfig;
-        this.balancerHost = comixConfig.getHost();
-        this.balancerPort = comixConfig.getPort();
-        this.targets = comixConfig.getTargets();
+        running = true;
+
+        try {
+            consoleReader = new ConsoleReader();
+            consoleReader.setExpandEvents(false);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void start() {
-        Console.getConsole().println((targets.size() > 0) ? "Targets:" : "No Target Servers found!");
-        targets.forEach(t -> Console.getConsole().println(t.getName() + " - " + t.getHost() + ":" + t.getPort()));
+        System.setProperty( "java.net.preferIPv4Stack", "true" );
 
-        Console.getConsole().println("Starting Comix on " + balancerHost + ":" + balancerPort + "...");
+        ResourceLeakDetector.setLevel( ResourceLeakDetector.Level.DISABLED );
+
+        AnsiConsole.systemInstall();
+
+        LogManager.getLogManager().reset();
+
+        logger = new ComixLogger(consoleReader);
+        logger.log(Level.INFO, "------ Comix v.0.1 ------");
+
+        loadConfig();
+
+        logger.log(Level.INFO, (targets.size() > 0) ? "Targets:" : "No Target Servers found!");
+        targets.forEach(t -> logger.log(Level.INFO, t.getName() + " - " + t.getHost() + ":" + t.getPort()));
+
+        logger.log(Level.INFO, "Starting Comix on " + balancerHost + ":" + balancerPort + "...");
 
         balancingStrategy = new RoundRobinBalancingStrategy(targets);
 
@@ -125,7 +155,7 @@ public class Comix {
 
                             packetHandler.setUpstreamHandler(upstreamHandler);
 
-                            Console.getConsole().println("[" + ch.remoteAddress().getAddress().getHostAddress() + "] -> InitialHandler has connected");
+                            logger.log(Level.INFO, "[" + ch.remoteAddress().getAddress().getHostAddress() + "] -> InitialHandler has connected");
                         }
 
                     });
@@ -136,9 +166,11 @@ public class Comix {
 
             loadStatusResponse();
 
-            Console.getConsole().println("Comix is started!");
+            logger.log(Level.INFO, "Comix is started!");
 
             f.channel().closeFuture().sync();
+
+            running = false;
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
@@ -147,7 +179,29 @@ public class Comix {
         }
     }
 
+    @Override
+    public void run() {
+        start();
+    }
+
+    private void loadConfig() {
+        try {
+            this.comixConfig = Config.loadConfig("");
+
+            this.balancerHost = comixConfig.getHost();
+            this.balancerPort = comixConfig.getPort();
+            this.targets = comixConfig.getTargets();
+
+            logger.log(Level.INFO, "Config loaded...");
+        } catch (Exception e) {
+            logger.log(Level.INFO, "Unable to load Comix Config file!");
+            System.exit(1);
+        }
+    }
+
     public void shutdown() {
+        running = false;
+
         bossGroup.shutdownGracefully();
         workerGroup.shutdownGracefully();
     }
@@ -164,9 +218,9 @@ public class Comix {
                     ipBlacklist.add(line);
             }
 
-            Console.getConsole().println("IP-Blacklist", (ipBlacklist.size() == 0) ? "File loaded..." : ipBlacklist.size() + " IPs loaded...");
+            logger.log(Level.INFO, "IP-Blacklist", (ipBlacklist.size() == 0) ? "File loaded..." : ipBlacklist.size() + " IPs loaded...");
         } catch (Exception e) {
-            Console.getConsole().println("Error loading ip-blacklist.comix: " + e.getMessage());
+            logger.log(Level.WARNING, "Error loading ip-blacklist.comix: " + e.getMessage());
         }
     }
 
@@ -187,11 +241,11 @@ public class Comix {
 
             bos.close();
         } catch (IOException e) {
-            Console.getConsole().println("Favicon could not be loaded: " + e.getMessage());
+            logger.log(Level.WARNING, "Favicon could not be loaded: " + e.getMessage());
             return "";
         }
 
-        Console.getConsole().println("Favicon loaded...");
+        logger.log(Level.INFO, "Favicon loaded...");
 
         return imageString;
     }
@@ -215,9 +269,9 @@ public class Comix {
             else
                 statusResponseString = "{\"version\":{\"name\":\"" + comixConfig.getMaintenancePingMessage() + "\",\"protocol\":0},\"players\":{\"max\":" + statusResponse.getPlayers().getMax() + ",\"online\":" + statusResponse.getPlayers().getOnline() + "},\"description\":\"" + comixConfig.getMaintenanceDescription() + "\",\"favicon\":\"data:image/png;base64," + faviconString + "\",\"modinfo\":{\"type\":\"FML\",\"modList\":[]}}";
 
-            Console.getConsole().println("Status Response loaded...");
+            logger.log(Level.INFO, "Status Response loaded...");
         } catch (Exception e) {
-            Console.getConsole().println("Error loading status.comix");
+            logger.log(Level.SEVERE, "Error loading status.comix");
             e.printStackTrace();
         }
     }
@@ -236,6 +290,10 @@ public class Comix {
 
     public int getClientsOnline() {
         return clients.size();
+    }
+
+    public boolean isRunning() {
+        return running;
     }
 
     public ComixConfig getComixConfig() {
@@ -264,6 +322,14 @@ public class Comix {
 
     public void setStatusResponse(StatusResponse statusResponse) {
         this.statusResponse = statusResponse;
+    }
+
+    public static ConsoleReader getConsoleReader() {
+        return consoleReader;
+    }
+
+    public static Logger getLogger() {
+        return logger;
     }
 
     public static Comix getInstance() {

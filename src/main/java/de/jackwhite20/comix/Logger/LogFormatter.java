@@ -17,30 +17,30 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.jackwhite20.comix;
+package de.jackwhite20.comix.Logger;
 
-import de.jackwhite20.comix.util.Color;
-
-import java.util.logging.Level;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.logging.Formatter;
+import java.util.logging.LogRecord;
 
 /**
- * Created by JackWhite20 on 13.07.2015.
+ * Created by JackWhite20 on 17.07.2015.
  */
-public class Main {
+public class LogFormatter extends Formatter {
 
-    public static void main(String[] args) throws Exception {
-        Comix comix = new Comix();
-        new Thread(comix, "Comix").start();
+    private DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss.S");
 
-        while (comix.isRunning()) {
-            String line = Comix.getConsoleReader().readLine(Color.CYAN + "Comix >" + Color.RESET);
+    @Override
+    public String format(LogRecord record) {
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append(dateFormat.format(new Date()));
+        stringBuilder.append(" [" + record.getLevel() + "]");
+        stringBuilder.append(": " + record.getMessage());
+        stringBuilder.append("\n");
 
-            Comix.getLogger().log(Level.INFO, "Command not found!");
-        }
-
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            comix.shutdown();
-        }));
+        return stringBuilder.toString();
     }
 
 }

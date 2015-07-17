@@ -20,7 +20,6 @@
 package de.jackwhite20.comix.network;
 
 import de.jackwhite20.comix.Comix;
-import de.jackwhite20.comix.console.Console;
 import de.jackwhite20.comix.strategy.BalancingStrategy;
 import de.jackwhite20.comix.util.TargetData;
 import de.jackwhite20.comix.util.Util;
@@ -30,6 +29,7 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 
 import java.net.InetSocketAddress;
+import java.util.logging.Level;
 
 /**
  * Created by JackWhite20 on 17.07.2015.
@@ -73,8 +73,8 @@ public class UpstreamHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
                 downstreamConnected = true;
 
-                Console.getConsole().println("[" + ((client == null) ? Util.formatSocketAddress(upstreamChannel.remoteAddress()) : client.getName()) + "] <-> UpstreamHandler has connected");
-                Console.getConsole().println("[" + ((client == null) ? Util.formatSocketAddress(upstreamChannel.remoteAddress()) : client.getName()) + "] <-> [Comix] <-> [" + target.getName() + "] tunneled");
+                Comix.getLogger().log(Level.INFO, "[" + ((client == null) ? Util.formatSocketAddress(upstreamChannel.remoteAddress()) : client.getName()) + "] <-> UpstreamHandler has connected");
+                Comix.getLogger().log(Level.INFO, "[" + ((client == null) ? Util.formatSocketAddress(upstreamChannel.remoteAddress()) : client.getName()) + "] <-> [Comix] <-> [" + target.getName() + "] tunneled");
             } else {
                 upstreamChannel.close();
             }
@@ -114,7 +114,7 @@ public class UpstreamHandler extends SimpleChannelInboundHandler<ByteBuf> {
             if(client != null)
                 Comix.getInstance().removeClient(client);
 
-            Console.getConsole().println("[" + client.getName() + "] -> UpstreamHandler has disconnected");
+            Comix.getLogger().log(Level.INFO, "[" + client.getName() + "] -> UpstreamHandler has disconnected");
         }
     }
 

@@ -20,13 +20,13 @@
 package de.jackwhite20.comix.network;
 
 import de.jackwhite20.comix.Comix;
-import de.jackwhite20.comix.console.Console;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageDecoder;
 
 import java.util.List;
+import java.util.logging.Level;
 
 /**
  * Created by JackWhite20 on 17.07.2015.
@@ -102,7 +102,7 @@ public class PacketHandler extends MessageToMessageDecoder<ByteBuf> {
 
                     channelHandlerContext.channel().pipeline().remove(this);
 
-                    Console.getConsole().println("Player logged in: " + name);
+                    Comix.getLogger().log(Level.INFO, "Player logged in: " + name);
 
                     list.add(copy.retain());
                 }
