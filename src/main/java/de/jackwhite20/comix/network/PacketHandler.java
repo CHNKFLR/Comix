@@ -30,25 +30,18 @@ import io.netty.handler.codec.MessageToMessageDecoder;
 import java.util.List;
 
 /**
- * Created by JackWhite20 on 14.07.2015.
+ * Created by JackWhite20 on 17.07.2015.
  */
-public class PacketDecoderNew extends MessageToMessageDecoder<ByteBuf> {
+public class PacketHandler extends MessageToMessageDecoder<ByteBuf> {
 
-    private UpstreamHandler upstreamHandler;
+    private UpstreamHandlerNew upstreamHandler;
 
-    public void setUpstreamHandler(UpstreamHandler upstreamHandler) {
+    public void setUpstreamHandler(UpstreamHandlerNew upstreamHandler) {
         this.upstreamHandler = upstreamHandler;
     }
 
     @Override
-    public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
-        Console.getConsole().println("Handler Added");
-    }
-
-    @Override
     protected void decode(ChannelHandlerContext channelHandlerContext, ByteBuf byteBuf, List<Object> list) throws Exception {
-        Console.getConsole().println("Decode");
-
         ByteBuf copy = byteBuf.copy();
 
         try {
@@ -85,9 +78,8 @@ public class PacketDecoderNew extends MessageToMessageDecoder<ByteBuf> {
                     pingResponse.writeLong(System.currentTimeMillis()); // Read long from client
                     channelHandlerContext.writeAndFlush(pingResponse.retain());
 
-                    channelHandlerContext.channel().pipeline().removeFirst();
+                    channelHandlerContext.channel().pipeline().remove(this);
                     channelHandlerContext.close();
-
                     return;
                 } else if (state == 2) {
                     if(Comix.getInstance().getComixConfig().isMaintenance()) {
@@ -101,21 +93,23 @@ public class PacketDecoderNew extends MessageToMessageDecoder<ByteBuf> {
                         channelHandlerContext.close();
                         return;
                     }
-                    //upstreamHandler.startProxying();
+
+                    upstreamHandler.connectDownstream(copy);
 
                     String name = Protocol.readString(buffer);
 
-                    channelHandlerContext.channel().pipeline().removeFirst();
+                    channelHandlerContext.channel().pipeline().remove(this);
 
                     Console.getConsole().println("Player logged in: " + name);
 
-/*                    ComixClient comixClient = new ComixClient(name, upstreamHandler.getDownstreamHandler(), upstreamHandler);
+                    ComixClient comixClient = new ComixClient(name, upstreamHandler.getDownstreamHandler(), upstreamHandler);
                     Comix.getInstance().addClient(comixClient);
-                    upstreamHandler.setClient(comixClient);*/
+                    upstreamHandler.setClient(comixClient);
 
                     list.add(copy.retain());
                 }
             } else {
+                Console.getConsole().println("Relaying");
                 list.add(copy.retain());
             }
 

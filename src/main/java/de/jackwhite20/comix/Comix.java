@@ -22,10 +22,7 @@ package de.jackwhite20.comix;
 import com.google.gson.Gson;
 import de.jackwhite20.comix.config.ComixConfig;
 import de.jackwhite20.comix.console.Console;
-import de.jackwhite20.comix.network.ComixClient;
-import de.jackwhite20.comix.network.PacketDecoderNew;
-import de.jackwhite20.comix.network.StatusResponse;
-import de.jackwhite20.comix.network.UpstreamHandler;
+import de.jackwhite20.comix.network.*;
 import de.jackwhite20.comix.strategy.BalancingStrategy;
 import de.jackwhite20.comix.strategy.RoundRobinBalancingStrategy;
 import de.jackwhite20.comix.util.TargetData;
@@ -122,13 +119,21 @@ public class Comix {
                                 return;
                             }
 
-                            UpstreamHandler upstreamHandler = new UpstreamHandler(balancingStrategy);
+                            //UpstreamHandler upstreamHandler = new UpstreamHandler(balancingStrategy);
                             //p.addFirst(trafficHandler);
                             //p.addFirst(new IpFilterHandler(balancingStrategy));
-                            p.addFirst(new PacketDecoderNew(upstreamHandler));
+
+                            PacketHandler packetHandler = new PacketHandler();
+                            p.addFirst(packetHandler);
+
                             //p.addFirst(new PacketDecoder());
+
                             //p.addFirst(new PacketDownstreamDecoder());
+                            UpstreamHandlerNew upstreamHandler = new UpstreamHandlerNew(balancingStrategy);
                             p.addLast(upstreamHandler);
+
+                            packetHandler.setUpstreamHandler(upstreamHandler);
+                            //packetDecoderNew.setUpstreamHandler(upstreamHandler);
 
                             Console.getConsole().println("[/" + p.channel().remoteAddress() + "] -> InitialHandler has connected");
                         }
