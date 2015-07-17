@@ -25,13 +25,16 @@ public class Players {
 
     private String online;
 
+    private String sample;
+
     public Players() {
 
     }
 
-    public Players(String max, String online) {
+    public Players(String max, String online, String sample) {
         this.max = max;
         this.online = online;
+        this.sample = sample;
     }
 
     public String getMax() {
@@ -40,6 +43,10 @@ public class Players {
 
     public String getOnline() {
         return online;
+    }
+
+    public String getSample() {
+        return sample;
     }
 
     @Override
