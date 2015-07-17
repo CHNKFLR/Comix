@@ -33,6 +33,10 @@ public class ComixConfig {
 
     private int port;
 
+    private int threads;
+
+    private int backlog;
+
     private List<TargetData> targets = new ArrayList<>();
 
     private boolean maintenance;
@@ -43,9 +47,11 @@ public class ComixConfig {
 
     private String maintenancePingMessage;
 
-    public ComixConfig(String host, int port, List<TargetData> targets, boolean maintenance, String maintenanceDescription, String maintenanceKickMessage, String maintenancePingMessage) {
+    public ComixConfig(String host, int port, int threads, int backlog, List<TargetData> targets, boolean maintenance, String maintenanceDescription, String maintenanceKickMessage, String maintenancePingMessage) {
         this.host = host;
         this.port = port;
+        this.threads = threads;
+        this.backlog = backlog;
         this.targets = targets;
         this.maintenance = maintenance;
         this.maintenanceDescription = maintenanceDescription;
@@ -67,6 +73,22 @@ public class ComixConfig {
 
     public void setPort(int port) {
         this.port = port;
+    }
+
+    public int getThreads() {
+        return threads;
+    }
+
+    public void setThreads(int threads) {
+        this.threads = threads;
+    }
+
+    public int getBacklog() {
+        return backlog;
+    }
+
+    public void setBacklog(int backlog) {
+        this.backlog = backlog;
     }
 
     public List<TargetData> getTargets() {
