@@ -20,7 +20,10 @@
 package de.jackwhite20.comix;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import de.jackwhite20.comix.Logger.ComixLogger;
+import de.jackwhite20.comix.command.CommandManager;
+import de.jackwhite20.comix.command.commands.*;
 import de.jackwhite20.comix.config.ComixConfig;
 import de.jackwhite20.comix.config.Config;
 import de.jackwhite20.comix.network.ComixClient;
@@ -41,6 +44,7 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.ResourceLeakDetector;
 import jline.console.ConsoleReader;
+import jline.console.completer.StringsCompleter;
 import org.fusesource.jansi.AnsiConsole;
 import sun.misc.BASE64Encoder;
 
@@ -89,6 +93,8 @@ public class Comix implements Runnable {
 
     private List<ComixClient> clients = Collections.synchronizedList(new ArrayList<ComixClient>());
 
+    private CommandManager commandManager = new CommandManager();
+
     public Comix() {
         instance = this;
         running = true;
@@ -117,6 +123,18 @@ public class Comix implements Runnable {
 
         logger.log(Level.INFO, (targets.size() > 0) ? "Targets:" : "No Target Servers found!");
         targets.forEach(t -> logger.log(Level.INFO, t.getName() + " - " + t.getHost() + ":" + t.getPort()));
+
+        logger.log(Level.INFO, "Registering commands...");
+
+        commandManager.addCommand(new HelpCommand("help",  new String[] {"h", "?"}, "List of commands"));
+        commandManager.addCommand(new ReloadCommand("reload",  new String[] {"r"}, "Reloads 'ip-blacklist.comix' and 'status.comix'"));
+        commandManager.addCommand(new MaintenanceCommand("maintenance",  new String[] {"m"}, "Switches between Maintenance"));
+        commandManager.addCommand(new KickallCommand("kickall",  new String[] {"ka"}, "Kicks all players from Comix"));
+        commandManager.addCommand(new ClearCommand("clear",  new String[] {"c"}, "Clears the screen"));
+
+        List<String> cmds = new ArrayList<>();
+        commandManager.getCommands().forEach(c -> cmds.add(c.getName()));
+        consoleReader.addCompleter(new StringsCompleter(cmds));
 
         logger.log(Level.INFO, "Starting Comix on " + balancerHost + ":" + balancerPort + "...");
 
@@ -176,6 +194,44 @@ public class Comix implements Runnable {
         } finally {
             bossGroup.shutdownGracefully();
             workerGroup.shutdownGracefully();
+        }
+    }
+
+    public void kickAll() {
+        clients.forEach(c -> c.getUpstreamHandler().getUpstreamChannel().close());
+    }
+
+    public void reload() {
+        loadIpBlacklist();
+        loadStatusResponse();
+    }
+
+    public boolean maintainMode() {
+        if(!comixConfig.isMaintenance()) {
+            comixConfig.setMaintenance(true);
+            saveConfig();
+            loadStatusResponse();
+
+            return true;
+        }else {
+            comixConfig.setMaintenance(false);
+            saveConfig();
+            loadStatusResponse();
+
+            return false;
+        }
+    }
+
+    public void saveConfig() {
+        String status = new GsonBuilder().setPrettyPrinting().create().toJson(comixConfig, ComixConfig.class);
+
+        try {
+            BufferedWriter writer = new BufferedWriter(new FileWriter(new File("config.comix")));
+            writer.write(status);
+            writer.flush();
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -266,8 +322,9 @@ public class Comix implements Runnable {
             statusResponse = new Gson().fromJson(stringBuilder.toString(), StatusResponse.class);
             if(!comixConfig.isMaintenance())
                 statusResponseString = "{\"version\":{\"name\":\"" + statusResponse.getVersion().getName() + "\",\"protocol\":" + statusResponse.getVersion().getProtocol() + "},\"players\":{\"max\":" + statusResponse.getPlayers().getMax() + ",\"online\":" + statusResponse.getPlayers().getOnline() + "},\"description\":\"" + statusResponse.getDescription() + "\",\"favicon\":\"data:image/png;base64," + faviconString + "\",\"modinfo\":{\"type\":\"FML\",\"modList\":[]}}";
-            else
+            else {
                 statusResponseString = "{\"version\":{\"name\":\"" + comixConfig.getMaintenancePingMessage() + "\",\"protocol\":0},\"players\":{\"max\":" + statusResponse.getPlayers().getMax() + ",\"online\":" + statusResponse.getPlayers().getOnline() + "},\"description\":\"" + comixConfig.getMaintenanceDescription() + "\",\"favicon\":\"data:image/png;base64," + faviconString + "\",\"modinfo\":{\"type\":\"FML\",\"modList\":[]}}";
+            }
 
             logger.log(Level.INFO, "Status Response loaded...");
         } catch (Exception e) {
@@ -326,6 +383,10 @@ public class Comix implements Runnable {
 
     public static ConsoleReader getConsoleReader() {
         return consoleReader;
+    }
+
+    public CommandManager getCommandManager() {
+        return commandManager;
     }
 
     public static Logger getLogger() {

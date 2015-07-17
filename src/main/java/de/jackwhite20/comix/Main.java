@@ -19,6 +19,7 @@
 
 package de.jackwhite20.comix;
 
+import de.jackwhite20.comix.command.Command;
 import de.jackwhite20.comix.util.Color;
 
 import java.util.logging.Level;
@@ -28,14 +29,32 @@ import java.util.logging.Level;
  */
 public class Main {
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] consoleArgs) throws Exception {
         Comix comix = new Comix();
         new Thread(comix, "Comix").start();
 
         while (comix.isRunning()) {
             String line = Comix.getConsoleReader().readLine(Color.CYAN + "Comix >" + Color.RESET);
 
-            Comix.getLogger().log(Level.INFO, "Command not found!");
+            if(line == "")
+                continue;
+
+            String[] splitted = line.split(" ");
+            int length = splitted.length - 1;
+            String[] args = new String[0];
+            if(length > 1) {
+                args = new String[length];
+                System.arraycopy(splitted, 1, args, 0, length);
+            }
+            String name = splitted[0];
+
+            Command command = comix.getCommandManager().findCommand(name);
+
+            if(command != null) {
+                command.execute(args);
+            }else {
+                Comix.getLogger().log(Level.INFO, Color.RED + "Command not found!");
+            }
         }
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
