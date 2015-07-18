@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.jackwhite20.comix.response;
+package de.jackwhite20.comix.config.response;
 
 public class Version {
     private String name;

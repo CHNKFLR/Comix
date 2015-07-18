@@ -17,9 +17,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.jackwhite20.comix.network;
+package de.jackwhite20.comix.handler;
 
 import de.jackwhite20.comix.Comix;
+import de.jackwhite20.comix.network.ComixClient;
 import de.jackwhite20.comix.strategy.BalancingStrategy;
 import de.jackwhite20.comix.util.TargetData;
 import de.jackwhite20.comix.util.Util;

@@ -21,15 +21,14 @@ package de.jackwhite20.comix;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import de.jackwhite20.comix.Logger.ComixLogger;
+import de.jackwhite20.comix.logger.ComixLogger;
 import de.jackwhite20.comix.command.CommandManager;
 import de.jackwhite20.comix.command.commands.*;
 import de.jackwhite20.comix.config.ComixConfig;
 import de.jackwhite20.comix.config.Config;
+import de.jackwhite20.comix.handler.ComixChannelInitializer;
 import de.jackwhite20.comix.network.ComixClient;
-import de.jackwhite20.comix.network.PacketHandler;
-import de.jackwhite20.comix.network.UpstreamHandler;
-import de.jackwhite20.comix.response.StatusResponse;
+import de.jackwhite20.comix.config.response.StatusResponse;
 import de.jackwhite20.comix.strategy.BalancingStrategy;
 import de.jackwhite20.comix.strategy.RoundRobinBalancingStrategy;
 import de.jackwhite20.comix.util.TargetData;
@@ -37,11 +36,8 @@ import de.jackwhite20.comix.whitelist.Whitelist;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
-import io.netty.channel.ChannelPipeline;
 import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.ResourceLeakDetector;
 import jline.console.ConsoleReader;
@@ -130,7 +126,7 @@ public class Comix implements Runnable {
         logger.log(Level.INFO, "Registering commands...");
 
         commandManager.addCommand(new HelpCommand("help",  new String[] {"h", "?"}, "List of commands"));
-        commandManager.addCommand(new ReloadCommand("reload",  new String[] {"r"}, "Reloads 'ip-blacklist.comix' and 'status.comix'"));
+        commandManager.addCommand(new ReloadCommand("reload",  new String[] {"r"}, "Reloads 'ip-blacklist.comix', 'status.comix' and 'whitelist.comix'"));
         commandManager.addCommand(new MaintenanceCommand("maintenance",  new String[] {"m"}, "Switches between Maintenance"));
         commandManager.addCommand(new KickallCommand("kickall",  new String[] {"ka"}, "Kicks all players from Comix"));
         commandManager.addCommand(new ClearCommand("clear",  new String[] {"c"}, "Clears the screen"));
@@ -158,30 +154,7 @@ public class Comix implements Runnable {
                     .childOption(ChannelOption.TCP_NODELAY, true)
                     .childOption(ChannelOption.AUTO_READ, false)
                     .childOption(ChannelOption.SO_TIMEOUT, 5000)
-                    .childHandler(new ChannelInitializer<SocketChannel>() {
-
-                        @Override
-                        public void initChannel(SocketChannel ch) throws Exception {
-                            ChannelPipeline p = ch.pipeline();
-
-                            // Simple IP-Blacklist
-                            if (ipBlacklist.contains(ch.remoteAddress().getAddress().getHostAddress())) {
-                                ch.close();
-                                return;
-                            }
-
-                            PacketHandler packetHandler = new PacketHandler();
-                            p.addFirst(packetHandler);
-
-                            UpstreamHandler upstreamHandler = new UpstreamHandler(balancingStrategy);
-                            p.addLast(upstreamHandler);
-
-                            packetHandler.setUpstreamHandler(upstreamHandler);
-
-                            logger.log(Level.INFO, "[" + ch.remoteAddress().getAddress().getHostAddress() + "] -> InitialHandler has connected");
-                        }
-
-                    });
+                    .childHandler(new ComixChannelInitializer());
 
             ChannelFuture f = bootstrap.bind(comixConfig.getPort()).sync();
 
@@ -195,8 +168,7 @@ public class Comix implements Runnable {
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            bossGroup.shutdownGracefully();
-            workerGroup.shutdownGracefully();
+            shutdown();
         }
     }
 
@@ -281,6 +253,10 @@ public class Comix implements Runnable {
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Error while loading 'whitelist.comix'!");
         }
+    }
+
+    public boolean isIpBanned(String ip) {
+        return ipBlacklist.contains(ip);
     }
 
     public boolean isWhitelisted(String name) {
@@ -410,10 +386,6 @@ public class Comix implements Runnable {
 
     public BalancingStrategy getBalancingStrategy() {
         return balancingStrategy;
-    }
-
-    public void setBalancingStrategy(BalancingStrategy balancingStrategy) {
-        this.balancingStrategy = balancingStrategy;
     }
 
     public StatusResponse getStatusResponse() {

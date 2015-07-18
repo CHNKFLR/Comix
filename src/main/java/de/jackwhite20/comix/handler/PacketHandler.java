@@ -17,9 +17,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.jackwhite20.comix.network;
+package de.jackwhite20.comix.handler;
 
 import de.jackwhite20.comix.Comix;
+import de.jackwhite20.comix.network.ComixClient;
+import de.jackwhite20.comix.network.Protocol;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;

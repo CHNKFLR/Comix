@@ -19,6 +19,9 @@
 
 package de.jackwhite20.comix.network;
 
+import de.jackwhite20.comix.handler.DownstreamHandler;
+import de.jackwhite20.comix.handler.UpstreamHandler;
+
 /**
  * Created by JackWhite20 on 16.07.2015.
  */
