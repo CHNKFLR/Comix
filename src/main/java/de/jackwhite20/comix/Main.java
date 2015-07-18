@@ -57,9 +57,7 @@ public class Main {
             }
         }
 
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            comix.shutdown();
-        }));
+        Runtime.getRuntime().addShutdownHook(new Thread(comix::shutdown));
     }
 
 }

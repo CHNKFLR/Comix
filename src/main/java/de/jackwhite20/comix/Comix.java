@@ -134,6 +134,7 @@ public class Comix implements Runnable {
         commandManager.addCommand(new MaintenanceCommand("maintenance",  new String[] {"m"}, "Switches between Maintenance"));
         commandManager.addCommand(new KickallCommand("kickall",  new String[] {"ka"}, "Kicks all players from Comix"));
         commandManager.addCommand(new ClearCommand("clear",  new String[] {"c"}, "Clears the screen"));
+        commandManager.addCommand(new StopCommand("stop",  new String[] {"end"}, "Stops Comix"));
 
         List<String> cmds = new ArrayList<>();
         commandManager.getCommands().forEach(c -> cmds.add(c.getName()));
@@ -299,6 +300,9 @@ public class Comix implements Runnable {
 
         bossGroup.shutdownGracefully();
         workerGroup.shutdownGracefully();
+
+        //TODO: Shutdown more "nicely"
+        System.exit(0);
     }
 
     private void loadIpBlacklist() {
