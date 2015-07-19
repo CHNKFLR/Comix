@@ -21,9 +21,6 @@ package de.jackwhite20.comix.command.commands;
 
 import de.jackwhite20.comix.Comix;
 import de.jackwhite20.comix.command.Command;
-import de.jackwhite20.comix.util.Color;
-
-import java.util.logging.Level;
 
 /**
  * Created by JackWhite20 on 17.07.2015.
@@ -37,9 +34,9 @@ public class MaintenanceCommand extends Command {
     @Override
     public boolean execute(String[] args) {
         if (Comix.getInstance().maintainMode()) {
-            Comix.getLogger().log(Level.INFO, Color.GREEN + "Maintenance enabled!");
+            Comix.getLogger().info("Maintenance enabled!");
         }else {
-            Comix.getLogger().log(Level.INFO, Color.RED + "Maintenance disabled!");
+            Comix.getLogger().info("Maintenance disabled!");
         }
         return true;
     }

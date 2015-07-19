@@ -21,9 +21,6 @@ package de.jackwhite20.comix.command.commands;
 
 import de.jackwhite20.comix.Comix;
 import de.jackwhite20.comix.command.Command;
-import de.jackwhite20.comix.util.Color;
-
-import java.util.logging.Level;
 
 /**
  * Created by JackWhite20 on 17.07.2015.
@@ -36,9 +33,9 @@ public class HelpCommand extends Command {
 
     @Override
     public boolean execute(String[] args) {
-        Comix.getLogger().log(Level.INFO, Color.GREEN + "Available Commands:");
+        Comix.getLogger().info("Available Commands:");
         for (Command command : Comix.getInstance().getCommandManager().getCommands()) {
-            Comix.getLogger().log(Level.INFO, Color.GREEN + command.getName() + Color.RESET + " [" + String.join(", ", command.getAliases()) + "] - " + command.getDescription());
+            Comix.getLogger().info(command.getName() + " [" + String.join(", ", command.getAliases()) + "] - " + command.getDescription());
         }
         return true;
     }

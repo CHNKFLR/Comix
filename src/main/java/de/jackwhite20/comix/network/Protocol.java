@@ -22,7 +22,6 @@ package de.jackwhite20.comix.network;
 import io.netty.buffer.ByteBuf;
 
 import java.nio.charset.Charset;
-import java.util.UUID;
 
 /**
  * Created by JackWhite20 on 14.07.2015.
@@ -39,13 +38,9 @@ public class Protocol {
 
     public static String readString(ByteBuf buf) {
         int len = readVarInt(buf);
-        if(buf.readableBytes() >= len) {
-            byte[] b = new byte[len];
-            buf.readBytes(b);
-            return new String( b, UTF_8 );
-        }else {
-            return "";
-        }
+        byte[] b = new byte[len];
+        buf.readBytes(b);
+        return new String(b, UTF_8);
     }
 
     public static void writeVarInt(int value, ByteBuf output) {

@@ -28,8 +28,6 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 
-import java.util.logging.Level;
-
 /**
  * Created by JackWhite20 on 13.07.2015.
  */
@@ -49,7 +47,7 @@ public class DownstreamHandler extends SimpleChannelInboundHandler<ByteBuf> {
         ctx.read();
         ctx.write(Unpooled.EMPTY_BUFFER);
 
-        Comix.getLogger().log(Level.INFO, "[" + client.getName() + "] <-> DownstreamHandler has connected");
+        Comix.getLogger().info("[" + client.getName() + "] <-> DownstreamHandler has connected");
     }
 
     @Override
@@ -70,7 +68,7 @@ public class DownstreamHandler extends SimpleChannelInboundHandler<ByteBuf> {
                 upstreamChannel.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE);
             }
 
-            Comix.getLogger().log(Level.INFO, "[" + client.getName() + "] -> DownstreamHandler has disconnected");
+            Comix.getLogger().info("[" + client.getName() + "] -> DownstreamHandler has disconnected");
         }
     }
 

@@ -21,9 +21,6 @@ package de.jackwhite20.comix.command.commands;
 
 import de.jackwhite20.comix.Comix;
 import de.jackwhite20.comix.command.Command;
-import de.jackwhite20.comix.util.Color;
-
-import java.util.logging.Level;
 
 /**
  * Created by JackWhite20 on 17.07.2015.
@@ -37,15 +34,15 @@ public class KickallCommand extends Command {
     @Override
     public boolean execute(String[] args) {
         if(Comix.getInstance().getClientsOnline() == 0) {
-            Comix.getLogger().log(Level.INFO, Color.RED + "No players online!");
+            Comix.getLogger().info("No players online!");
             return true;
         }
 
-        Comix.getLogger().log(Level.INFO, Color.GREEN + "Kicking " + Color.RED + Comix.getInstance().getClientsOnline() + Color.GREEN + " players!");
+        Comix.getLogger().info("Kicking " + Comix.getInstance().getClientsOnline() + " players!");
 
         Comix.getInstance().kickAll();
 
-        Comix.getLogger().log(Level.INFO, Color.GREEN + "All players kicked!");
+        Comix.getLogger().info("All players kicked!");
 
         return true;
     }

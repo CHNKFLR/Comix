@@ -19,8 +19,8 @@
 
 package de.jackwhite20.comix.logger;
 
-import de.jackwhite20.comix.util.Color;
 import jline.console.ConsoleReader;
+import org.fusesource.jansi.Ansi;
 
 import java.io.IOException;
 import java.util.logging.Handler;
@@ -39,7 +39,7 @@ public class LogWriter extends Handler {
 
     private void println(String line) {
         try {
-            console.print(ConsoleReader.RESET_LINE + line + Color.RESET);
+            console.print(ConsoleReader.RESET_LINE + line.replaceAll("\\p{C}", "") + Ansi.ansi().reset().toString() + "\n\r");
             console.drawLine();
             console.flush();
         } catch ( IOException ex ) {
@@ -49,7 +49,9 @@ public class LogWriter extends Handler {
 
     @Override
     public void publish(LogRecord record) {
-        println(getFormatter().format(record));
+        if(isLoggable(record)) {
+            println(getFormatter().format(record));
+        }
     }
 
     @Override

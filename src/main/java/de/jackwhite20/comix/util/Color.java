@@ -24,7 +24,7 @@ package de.jackwhite20.comix.util;
  */
 public class Color {
 
-    public static final String RESET = "\u001B[0m";
+/*    public static final String RESET = "\u001B[0m";
 
     public static final String BLACK = "\u001B[30m";
 
@@ -40,6 +40,6 @@ public class Color {
 
     public static final String CYAN = "\u001B[36m";
 
-    public static final String WHITE = "\u001B[37m";
+    public static final String WHITE = "\u001B[37m";*/
 
 }

@@ -21,14 +21,14 @@ package de.jackwhite20.comix;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import de.jackwhite20.comix.logger.ComixLogger;
 import de.jackwhite20.comix.command.CommandManager;
 import de.jackwhite20.comix.command.commands.*;
 import de.jackwhite20.comix.config.ComixConfig;
 import de.jackwhite20.comix.config.Config;
-import de.jackwhite20.comix.handler.ComixChannelInitializer;
-import de.jackwhite20.comix.network.ComixClient;
 import de.jackwhite20.comix.config.response.StatusResponse;
+import de.jackwhite20.comix.handler.ComixChannelInitializer;
+import de.jackwhite20.comix.logger.ComixLogger;
+import de.jackwhite20.comix.network.ComixClient;
 import de.jackwhite20.comix.strategy.BalancingStrategy;
 import de.jackwhite20.comix.strategy.RoundRobinBalancingStrategy;
 import de.jackwhite20.comix.util.TargetData;
@@ -90,7 +90,7 @@ public class Comix implements Runnable {
 
     private Whitelist whitelist;
 
-    private List<ComixClient> clients = Collections.synchronizedList(new ArrayList<ComixClient>());
+    private List<ComixClient> clients = Collections.synchronizedList(new ArrayList<>());
 
     private CommandManager commandManager = new CommandManager();
 
@@ -116,14 +116,15 @@ public class Comix implements Runnable {
         LogManager.getLogManager().reset();
 
         logger = new ComixLogger(consoleReader);
-        logger.log(Level.INFO, "------ Comix v.0.1 ------");
+
+        logger.info("------ Comix v.0.1 ------");
 
         loadConfig();
 
-        logger.log(Level.INFO, (targets.size() > 0) ? "Targets:" : "No Target Servers found!");
-        targets.forEach(t -> logger.log(Level.INFO, t.getName() + " - " + t.getHost() + ":" + t.getPort()));
+        logger.info((targets.size() > 0) ? "Targets:" : "No Target Servers found!");
+        targets.forEach(t -> logger.info(t.getName() + " - " + t.getHost() + ":" + t.getPort()));
 
-        logger.log(Level.INFO, "Registering commands...");
+        logger.info("Registering commands...");
 
         commandManager.addCommand(new HelpCommand("help",  new String[] {"h", "?"}, "List of commands"));
         commandManager.addCommand(new ReloadCommand("reload",  new String[] {"r"}, "Reloads 'ip-blacklist.comix', 'status.comix' and 'whitelist.comix'"));
@@ -136,7 +137,7 @@ public class Comix implements Runnable {
         commandManager.getCommands().forEach(c -> cmds.add(c.getName()));
         consoleReader.addCompleter(new StringsCompleter(cmds));
 
-        logger.log(Level.INFO, "Starting Comix on " + balancerHost + ":" + balancerPort + "...");
+        logger.info("Starting Comix on " + balancerHost + ":" + balancerPort + "...");
 
         balancingStrategy = new RoundRobinBalancingStrategy(targets);
 
@@ -153,14 +154,14 @@ public class Comix implements Runnable {
                     .option(ChannelOption.SO_KEEPALIVE, true)
                     .childOption(ChannelOption.TCP_NODELAY, true)
                     .childOption(ChannelOption.AUTO_READ, false)
-                    .childOption(ChannelOption.SO_TIMEOUT, 5000)
+                    .childOption(ChannelOption.SO_TIMEOUT, 4000)
                     .childHandler(new ComixChannelInitializer());
 
             ChannelFuture f = bootstrap.bind(comixConfig.getPort()).sync();
 
             reload();
 
-            logger.log(Level.INFO, "Comix is started!");
+            logger.info("Comix is started!");
 
             f.channel().closeFuture().sync();
 
@@ -224,9 +225,9 @@ public class Comix implements Runnable {
             this.balancerPort = comixConfig.getPort();
             this.targets = comixConfig.getTargets();
 
-            logger.log(Level.INFO, "Config loaded...");
+            logger.info("Config loaded...");
         } catch (Exception e) {
-            logger.log(Level.INFO, "Unable to load Comix Config file!");
+            logger.log(Level.SEVERE, "Unable to load Comix Config file!");
             System.exit(1);
         }
     }
@@ -247,9 +248,9 @@ public class Comix implements Runnable {
             whitelist = new Gson().fromJson(stringBuilder.toString(), Whitelist.class);
 
             if(!whitelist.isEnabled())
-                logger.log(Level.INFO, "Whitelist loaded...");
+                logger.info("Whitelist loaded...");
             else
-                logger.log(Level.INFO, "Whitelisted: " + String.join(", ", whitelist.getNames()));
+                logger.info("Whitelisted: " + String.join(", ", whitelist.getNames()));
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Error while loading 'whitelist.comix'!");
         }
@@ -295,7 +296,7 @@ public class Comix implements Runnable {
 
             logger.log(Level.INFO, "IP-Blacklist", (ipBlacklist.size() == 0) ? "File loaded..." : ipBlacklist.size() + " IPs loaded...");
         } catch (Exception e) {
-            logger.log(Level.WARNING, "Error loading ip-blacklist.comix: " + e.getMessage());
+            logger.log(Level.WARNING, "Error while loading ip-blacklist.comix: " + e.getMessage());
         }
     }
 
@@ -316,11 +317,11 @@ public class Comix implements Runnable {
 
             bos.close();
         } catch (IOException e) {
-            logger.log(Level.WARNING, "Favicon could not be loaded: " + e.getMessage());
+            logger.log(Level.WARNING, "Error while loading favicon: " + e.getMessage());
             return "";
         }
 
-        logger.log(Level.INFO, "Favicon loaded...");
+        logger.info("Favicon loaded...");
 
         return imageString;
     }
@@ -345,9 +346,9 @@ public class Comix implements Runnable {
                 statusResponseString = "{\"version\":{\"name\":\"" + comixConfig.getMaintenancePingMessage() + "\",\"protocol\":0},\"players\":{\"max\":" + statusResponse.getPlayers().getMax() + ",\"online\":" + statusResponse.getPlayers().getOnline() + "},\"description\":\"" + comixConfig.getMaintenanceDescription() + "\",\"favicon\":\"data:image/png;base64," + faviconString + "\",\"modinfo\":{\"type\":\"FML\",\"modList\":[]}}";
             }
 
-            logger.log(Level.INFO, "Status Response loaded...");
+            logger.info("Status Response loaded...");
         } catch (Exception e) {
-            logger.log(Level.SEVERE, "Error loading status.comix");
+            logger.log(Level.SEVERE, "Error while loading status.comix");
             e.printStackTrace();
         }
     }

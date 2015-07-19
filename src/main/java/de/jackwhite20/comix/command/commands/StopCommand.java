@@ -22,8 +22,6 @@ package de.jackwhite20.comix.command.commands;
 import de.jackwhite20.comix.Comix;
 import de.jackwhite20.comix.command.Command;
 
-import java.util.logging.Level;
-
 /**
  * Created by JackWhite20 on 18.07.2015.
  */
@@ -35,7 +33,7 @@ public class StopCommand extends Command {
 
     @Override
     public boolean execute(String[] args) {
-        Comix.getLogger().log(Level.WARNING, "Shutting Comix down...");
+        Comix.getLogger().warning("Shutting Comix down...");
         Comix.getInstance().shutdown();
 
         return true;

@@ -17,29 +17,27 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.jackwhite20.comix.logger;
-
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.logging.Formatter;
-import java.util.logging.LogRecord;
+package de.jackwhite20.comix.network;
 
 /**
- * Created by JackWhite20 on 17.07.2015.
+ * Created by JackWhite20 on 18.07.2015.
  */
-public class LogFormatter extends Formatter {
+public enum ProtocolState {
 
-    private DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
+    HANDSHAKE((byte)0), STATUS((byte)1), LOGIN((byte)2);
 
-    @Override
-    public String format(LogRecord record) {
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(dateFormat.format(new Date()));
-        stringBuilder.append(" [" + record.getLevel() + "]");
-        stringBuilder.append(": " + record.getMessage());
+    private byte id;
 
-        return stringBuilder.toString();
+    ProtocolState(byte id) {
+        this.id = id;
+    }
+
+    public static ProtocolState valueOf(byte id) {
+        return values()[id];
+    }
+
+    public byte getId() {
+        return id;
     }
 
 }

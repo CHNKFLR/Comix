@@ -37,17 +37,16 @@ public class ComixLogger extends Logger {
     public ComixLogger(ConsoleReader console) {
         super("Comix", null);
 
-        setLevel(Level.ALL);
-
         try {
             LogWriter consoleHandler = new LogWriter(console);
-            consoleHandler.setLevel(Level.INFO);
+            consoleHandler.setLevel(Level.ALL);
             consoleHandler.setFormatter(formatter);
             addHandler(consoleHandler);
         } catch (Exception e) {
             System.err.println("Failed to initialize ComixLogger!");
             e.printStackTrace();
         }
+
         dispatcher.start();
     }
 

@@ -21,9 +21,6 @@ package de.jackwhite20.comix.command.commands;
 
 import de.jackwhite20.comix.Comix;
 import de.jackwhite20.comix.command.Command;
-import de.jackwhite20.comix.util.Color;
-
-import java.util.logging.Level;
 
 /**
  * Created by JackWhite20 on 17.07.2015.
@@ -37,7 +34,7 @@ public class ReloadCommand extends Command {
     @Override
     public boolean execute(String[] args) {
         Comix.getInstance().reload();
-        Comix.getLogger().log(Level.INFO, Color.GREEN + "Reload complete!");
+        Comix.getLogger().info("Reload complete!");
         return true;
     }
 

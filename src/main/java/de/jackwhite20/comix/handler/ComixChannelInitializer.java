@@ -20,12 +20,10 @@
 package de.jackwhite20.comix.handler;
 
 import de.jackwhite20.comix.Comix;
-import de.jackwhite20.comix.strategy.BalancingStrategy;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
 
-import java.util.List;
 import java.util.logging.Level;
 
 /**
@@ -43,13 +41,13 @@ public class ComixChannelInitializer extends ChannelInitializer<SocketChannel> {
             return;
         }
 
-        PacketHandler packetHandler = new PacketHandler();
-        p.addFirst(packetHandler);
+        HandshakeHandler handshakeHandler = new HandshakeHandler();
+        p.addFirst(handshakeHandler);
 
         UpstreamHandler upstreamHandler = new UpstreamHandler(Comix.getInstance().getBalancingStrategy());
         p.addLast(upstreamHandler);
 
-        packetHandler.setUpstreamHandler(upstreamHandler);
+        handshakeHandler.setUpstreamHandler(upstreamHandler);
 
         Comix.getLogger().log(Level.INFO, "[" + ch.remoteAddress().getAddress().getHostAddress() + "] -> InitialHandler has connected");
     }

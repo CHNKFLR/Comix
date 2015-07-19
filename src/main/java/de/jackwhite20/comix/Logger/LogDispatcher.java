@@ -38,25 +38,25 @@ public class LogDispatcher extends Thread {
 
     @Override
     public void run() {
-        while ( !isInterrupted() ) {
+        while (!isInterrupted()) {
             LogRecord record;
             try {
                 record = queue.take();
-            } catch ( InterruptedException ex ) {
+            } catch (InterruptedException ex) {
                 continue;
             }
 
             logger.realLog(record);
         }
 
-        for ( LogRecord record : queue ) {
+        for (LogRecord record : queue) {
             logger.realLog(record);
         }
     }
 
     public void queue(LogRecord record) {
-        if ( !isInterrupted() ) {
-            queue.add( record );
+        if (!isInterrupted()) {
+            queue.add(record);
         }
     }
 
