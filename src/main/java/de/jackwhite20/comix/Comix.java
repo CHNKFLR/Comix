@@ -27,7 +27,7 @@ import de.jackwhite20.comix.config.ComixConfig;
 import de.jackwhite20.comix.config.Config;
 import de.jackwhite20.comix.config.response.StatusResponse;
 import de.jackwhite20.comix.handler.ComixChannelInitializer;
-import de.jackwhite20.comix.logger.ComixLogger;
+import de.jackwhite20.comix.logging.ComixLogger;
 import de.jackwhite20.comix.network.ComixClient;
 import de.jackwhite20.comix.strategy.BalancingStrategy;
 import de.jackwhite20.comix.strategy.RoundRobinBalancingStrategy;

@@ -17,46 +17,51 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.jackwhite20.comix.logger;
+package de.jackwhite20.comix.logging;
 
 import jline.console.ConsoleReader;
+import org.fusesource.jansi.Ansi;
 
-import java.util.logging.Level;
+import java.io.IOException;
+import java.util.logging.Handler;
 import java.util.logging.LogRecord;
-import java.util.logging.Logger;
 
 /**
  * Created by JackWhite20 on 17.07.2015.
  */
-public class ComixLogger extends Logger {
+public class LogWriter extends Handler {
 
-    private final LogFormatter formatter = new LogFormatter();
+    private ConsoleReader console;
 
-    private final LogDispatcher dispatcher = new LogDispatcher(this);
+    public LogWriter(ConsoleReader console) {
+        this.console = console;
+    }
 
-    public ComixLogger(ConsoleReader console) {
-        super("Comix", null);
-
+    private void println(String line) {
         try {
-            LogWriter consoleHandler = new LogWriter(console);
-            consoleHandler.setLevel(Level.ALL);
-            consoleHandler.setFormatter(formatter);
-            addHandler(consoleHandler);
-        } catch (Exception e) {
-            System.err.println("Failed to initialize ComixLogger!");
-            e.printStackTrace();
-        }
+            console.print(ConsoleReader.RESET_LINE + line.replaceAll("\\p{C}", "") + Ansi.ansi().reset().toString() + "\n\r");
+            console.drawLine();
+            console.flush();
+        } catch ( IOException ex ) {
 
-        dispatcher.start();
+        }
     }
 
     @Override
-    public void log(LogRecord record) {
-        dispatcher.queue(record);
+    public void publish(LogRecord record) {
+        if(isLoggable(record)) {
+            println(getFormatter().format(record));
+        }
     }
 
-    public void realLog(LogRecord logRecord) {
-        super.log(logRecord);
+    @Override
+    public void flush() {
+
+    }
+
+    @Override
+    public void close() throws SecurityException {
+
     }
 
 }

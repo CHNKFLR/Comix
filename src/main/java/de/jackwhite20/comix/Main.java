@@ -34,7 +34,7 @@ public class Main {
         new Thread(comix, "Comix").start();
 
         while (comix.isRunning()) {
-            String line = Comix.getConsoleReader().readLine(Color.CYAN + "Comix >" + Color.RESET);
+            String line = Comix.getConsoleReader().readLine("Comix >");
 
             if(line == "")
                 continue;
@@ -53,7 +53,7 @@ public class Main {
             if(command != null) {
                 command.execute(args);
             }else {
-                Comix.getLogger().log(Level.INFO, Color.RED + "Command not found!");
+                Comix.getLogger().log(Level.INFO, "Command not found!");
             }
         }
 

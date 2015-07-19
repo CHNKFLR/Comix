@@ -17,51 +17,46 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.jackwhite20.comix.logger;
+package de.jackwhite20.comix.logging;
 
 import jline.console.ConsoleReader;
-import org.fusesource.jansi.Ansi;
 
-import java.io.IOException;
-import java.util.logging.Handler;
+import java.util.logging.Level;
 import java.util.logging.LogRecord;
+import java.util.logging.Logger;
 
 /**
  * Created by JackWhite20 on 17.07.2015.
  */
-public class LogWriter extends Handler {
+public class ComixLogger extends Logger {
 
-    private ConsoleReader console;
+    private final LogFormatter formatter = new LogFormatter();
 
-    public LogWriter(ConsoleReader console) {
-        this.console = console;
-    }
+    private final LogDispatcher dispatcher = new LogDispatcher(this);
 
-    private void println(String line) {
+    public ComixLogger(ConsoleReader console) {
+        super("Comix", null);
+
         try {
-            console.print(ConsoleReader.RESET_LINE + line.replaceAll("\\p{C}", "") + Ansi.ansi().reset().toString() + "\n\r");
-            console.drawLine();
-            console.flush();
-        } catch ( IOException ex ) {
-
+            LogWriter consoleHandler = new LogWriter(console);
+            consoleHandler.setLevel(Level.ALL);
+            consoleHandler.setFormatter(formatter);
+            addHandler(consoleHandler);
+        } catch (Exception e) {
+            System.err.println("Failed to initialize ComixLogger!");
+            e.printStackTrace();
         }
+
+        dispatcher.start();
     }
 
     @Override
-    public void publish(LogRecord record) {
-        if(isLoggable(record)) {
-            println(getFormatter().format(record));
-        }
+    public void log(LogRecord record) {
+        dispatcher.queue(record);
     }
 
-    @Override
-    public void flush() {
-
-    }
-
-    @Override
-    public void close() throws SecurityException {
-
+    public void realLog(LogRecord logRecord) {
+        super.log(logRecord);
     }
 
 }
