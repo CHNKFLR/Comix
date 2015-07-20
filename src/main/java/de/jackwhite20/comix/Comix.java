@@ -35,7 +35,6 @@ import de.jackwhite20.comix.tasks.CheckTargets;
 import de.jackwhite20.comix.util.TargetData;
 import de.jackwhite20.comix.whitelist.Whitelist;
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -144,7 +143,7 @@ public class Comix implements Runnable {
 
         balancingStrategy = new RoundRobinBalancingStrategy(targets);
 
-        new Timer("CheckTargets").scheduleAtFixedRate(new CheckTargets(balancingStrategy), 0, TimeUnit.SECONDS.toMillis(5));
+        new Timer("CheckTargets").scheduleAtFixedRate(new CheckTargets(balancingStrategy), 0, TimeUnit.SECONDS.toMillis(comixConfig.getCheckTime()));
 
         bossGroup = new NioEventLoopGroup(1);
         workerGroup = new NioEventLoopGroup(comixConfig.getThreads());
