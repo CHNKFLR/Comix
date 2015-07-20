@@ -21,7 +21,6 @@ package de.jackwhite20.comix.strategy;
 
 import de.jackwhite20.comix.util.TargetData;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 

@@ -20,7 +20,6 @@
 package de.jackwhite20.comix;
 
 import de.jackwhite20.comix.command.Command;
-import de.jackwhite20.comix.util.Color;
 
 import java.util.logging.Level;
 

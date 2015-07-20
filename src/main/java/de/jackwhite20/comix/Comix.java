@@ -305,10 +305,6 @@ public class Comix implements Runnable {
         }
     }
 
-    public String replaceColor(String input) {
-        return input.replace("§", "\\u00A7");
-    }
-
     public static String encodeToString(BufferedImage image, String type) {
         String imageString;
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -358,10 +354,6 @@ public class Comix implements Runnable {
         }
     }
 
-    public void broadcast(ByteBuf buffer) {
-        clients.forEach(comixClient -> comixClient.getUpstreamHandler().getUpstreamChannel().writeAndFlush(buffer));
-    }
-
     public synchronized void addClient(ComixClient comixClient) {
         clients.add(comixClient);
     }
@@ -390,20 +382,8 @@ public class Comix implements Runnable {
         return statusResponseString;
     }
 
-    public void setComixConfig(ComixConfig comixConfig) {
-        this.comixConfig = comixConfig;
-    }
-
     public BalancingStrategy getBalancingStrategy() {
         return balancingStrategy;
-    }
-
-    public StatusResponse getStatusResponse() {
-        return statusResponse;
-    }
-
-    public void setStatusResponse(StatusResponse statusResponse) {
-        this.statusResponse = statusResponse;
     }
 
     public static ConsoleReader getConsoleReader() {

@@ -51,16 +51,8 @@ public class ComixClient {
         return downstreamHandler;
     }
 
-    public void setDownstreamHandler(DownstreamHandler downstreamHandler) {
-        this.downstreamHandler = downstreamHandler;
-    }
-
     public UpstreamHandler getUpstreamHandler() {
         return upstreamHandler;
-    }
-
-    public void setUpstreamHandler(UpstreamHandler upstreamHandler) {
-        this.upstreamHandler = upstreamHandler;
     }
 
 }

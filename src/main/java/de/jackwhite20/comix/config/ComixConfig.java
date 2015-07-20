@@ -63,40 +63,20 @@ public class ComixConfig {
         return host;
     }
 
-    public void setHost(String host) {
-        this.host = host;
-    }
-
     public int getPort() {
         return port;
-    }
-
-    public void setPort(int port) {
-        this.port = port;
     }
 
     public int getThreads() {
         return threads;
     }
 
-    public void setThreads(int threads) {
-        this.threads = threads;
-    }
-
     public int getBacklog() {
         return backlog;
     }
 
-    public void setBacklog(int backlog) {
-        this.backlog = backlog;
-    }
-
     public List<TargetData> getTargets() {
         return targets;
-    }
-
-    public void setTargets(List<TargetData> targets) {
-        this.targets = targets;
     }
 
     public boolean isMaintenance() {
@@ -111,24 +91,12 @@ public class ComixConfig {
         return maintenanceDescription;
     }
 
-    public void setMaintenanceDescription(String maintenanceDescription) {
-        this.maintenanceDescription = maintenanceDescription;
-    }
-
     public String getMaintenanceKickMessage() {
         return maintenanceKickMessage;
     }
 
-    public void setMaintenanceKickMessage(String maintenanceKickMessage) {
-        this.maintenanceKickMessage = maintenanceKickMessage;
-    }
-
     public String getMaintenancePingMessage() {
         return maintenancePingMessage;
-    }
-
-    public void setMaintenancePingMessage(String maintenancePingMessage) {
-        this.maintenancePingMessage = maintenancePingMessage;
     }
 
     @Override
