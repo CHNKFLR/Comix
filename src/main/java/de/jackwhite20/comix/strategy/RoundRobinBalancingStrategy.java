@@ -28,18 +28,19 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Created by JackWhite20 on 13.07.2015.
  */
-public class RoundRobinBalancingStrategy implements BalancingStrategy {
+public class RoundRobinBalancingStrategy extends BalancingStrategy {
 
     private List<TargetData> targets;
 
     private AtomicInteger currentTarget = new AtomicInteger(0);
 
-    public RoundRobinBalancingStrategy(List<TargetData> target) {
-        this.targets = target;
+    public RoundRobinBalancingStrategy(List<TargetData> targets) {
+        super(targets);
+        this.targets = targets;
     }
 
     @Override
-    public TargetData selectTarget(String originHost, int originPort) {
+    public synchronized TargetData selectTarget(String originHost, int originPort) {
         int now = currentTarget.getAndIncrement();
 
         if (now >= targets.size()) {
@@ -48,11 +49,6 @@ public class RoundRobinBalancingStrategy implements BalancingStrategy {
         }
 
         return targets.get(now);
-    }
-
-    @Override
-    public List<TargetData> geTargetAddresses() {
-        return Collections.unmodifiableList(targets);
     }
 
 }

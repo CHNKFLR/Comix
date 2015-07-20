@@ -19,6 +19,9 @@
 
 package de.jackwhite20.comix.util;
 
+import java.io.IOException;
+import java.net.Socket;
+
 /**
  * Created by JackWhite20 on 13.07.2015.
  */
@@ -38,6 +41,15 @@ public class TargetData {
     public TargetData(String host, int port) {
         this.host = host;
         this.port = port;
+    }
+
+    public boolean isAvailable() {
+        try (Socket s = new Socket(host, port)) {
+            return true;
+        } catch (IOException ex) {
+
+        }
+        return false;
     }
 
     public String getHost() {

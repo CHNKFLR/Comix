@@ -31,6 +31,7 @@ import de.jackwhite20.comix.logging.ComixLogger;
 import de.jackwhite20.comix.network.ComixClient;
 import de.jackwhite20.comix.strategy.BalancingStrategy;
 import de.jackwhite20.comix.strategy.RoundRobinBalancingStrategy;
+import de.jackwhite20.comix.tasks.CheckTargets;
 import de.jackwhite20.comix.util.TargetData;
 import de.jackwhite20.comix.whitelist.Whitelist;
 import io.netty.bootstrap.ServerBootstrap;
@@ -50,6 +51,8 @@ import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
@@ -140,6 +143,8 @@ public class Comix implements Runnable {
         logger.info("Starting Comix on " + balancerHost + ":" + balancerPort + "...");
 
         balancingStrategy = new RoundRobinBalancingStrategy(targets);
+
+        new Timer("CheckTargets").scheduleAtFixedRate(new CheckTargets(balancingStrategy), 0, TimeUnit.SECONDS.toMillis(5));
 
         bossGroup = new NioEventLoopGroup(1);
         workerGroup = new NioEventLoopGroup(comixConfig.getThreads());

@@ -21,15 +21,28 @@ package de.jackwhite20.comix.strategy;
 
 import de.jackwhite20.comix.util.TargetData;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
  * Created by JackWhite20 on 13.07.2015.
  */
-public interface BalancingStrategy {
+public abstract class BalancingStrategy {
 
-    TargetData selectTarget(String originHost, int originPort);
+    private List<TargetData> targets;
 
-    List<TargetData> geTargetAddresses();
+    public BalancingStrategy(List<TargetData> targets) {
+        this.targets = Collections.synchronizedList(targets);
+    }
+
+    public abstract TargetData selectTarget(String originHost, int originPort);
+
+    public synchronized void addTarget(TargetData targetData) {
+        targets.add(targetData);
+    }
+
+    public List<TargetData> getTargets() {
+        return targets;
+    }
 
 }
