@@ -19,7 +19,6 @@
 
 package de.jackwhite20.comix.handler;
 
-import de.jackwhite20.comix.Comix;
 import de.jackwhite20.comix.network.ComixClient;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -75,8 +74,6 @@ public class DownstreamHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
             upstreamBytesOut = 0;
             downstreamBytesIn = 0;
-
-            Comix.getLogger().info("[" + client.getName() + "] -> DownstreamHandler has disconnected");
         }
     }
 
