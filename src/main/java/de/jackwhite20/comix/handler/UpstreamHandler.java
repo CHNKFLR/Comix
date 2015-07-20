@@ -46,7 +46,11 @@ public class UpstreamHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
     private boolean downstreamConnected;
 
-    public DownstreamHandler downstreamHandler;
+    private DownstreamHandler downstreamHandler;
+
+    private long upstreamBytesIn;
+
+    private long downstreamBytesOut;
 
     public UpstreamHandler(BalancingStrategy strategy) {
         this.strategy = strategy;
@@ -74,7 +78,6 @@ public class UpstreamHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
                 downstreamChannel.writeAndFlush(initPacket.retain());
 
-                Comix.getLogger().info("[" + client.getName() + "] <-> UpstreamHandler has connected");
                 Comix.getLogger().info("[" + client.getName() + "] <-> [Comix] <-> [" + target.getName() + "] tunneled");
             } else {
                 upstreamChannel.close();
@@ -103,6 +106,9 @@ public class UpstreamHandler extends SimpleChannelInboundHandler<ByteBuf> {
         }else {
             ctx.channel().read();
         }
+
+        upstreamBytesIn += byteBuf.readableBytes();
+        downstreamBytesOut += byteBuf.readableBytes();
     }
 
     @Override
@@ -114,6 +120,9 @@ public class UpstreamHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
             if(client != null)
                 Comix.getInstance().removeClient(client);
+
+            upstreamBytesIn = 0;
+            downstreamBytesOut = 0;
 
             Comix.getLogger().info("[" + ((client != null) ? client.getName() : Util.formatSocketAddress(upstreamChannel.remoteAddress())) + "] -> UpstreamHandler has disconnected");
         }
@@ -138,6 +147,14 @@ public class UpstreamHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
     public void setClient(ComixClient client) {
         this.client = client;
+    }
+
+    public long getUpstreamBytesIn() {
+        return upstreamBytesIn;
+    }
+
+    public long getDownstreamBytesOut() {
+        return downstreamBytesOut;
     }
 
 }

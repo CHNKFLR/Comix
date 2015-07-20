@@ -21,6 +21,7 @@ package de.jackwhite20.comix.util;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.text.DecimalFormat;
 
 /**
  * Created by JackWhite20 on 13.07.2015.
@@ -30,6 +31,16 @@ public class Util {
     public static String formatSocketAddress(SocketAddress address) {
         InetSocketAddress inetSocketAddress = (InetSocketAddress)address;
         return inetSocketAddress.getAddress().getHostAddress() + ":" + inetSocketAddress.getPort();
+    }
+
+    public static String convertBytes(long size) {
+        if (size <= 0)
+            return "0";
+
+        final String[] units = new String[]{"B", "kB", "MB", "GB", "TB"};
+        int digitGroups = (int) (Math.log10(size) / Math.log10(1024));
+
+        return new DecimalFormat("#,##0.#").format(size / Math.pow(1024, digitGroups)) + " " + units[digitGroups];
     }
 
 }

@@ -70,17 +70,20 @@ public class HandshakeHandler extends MessageToMessageDecoder<ByteBuf> {
                 if(byteBuf.readableBytes() == 2)
                     byteBuf.readBytes(2);
 
-                // Sending Pong instant because the client doesn't send a Ping!
+                // Sending Pong instant because otherwise the pong will not receive properly!
                 ByteBuf pongBuffer = Unpooled.buffer();
                 Protocol.writeVarInt(9, pongBuffer);
                 Protocol.writeVarInt(1, pongBuffer);
-                pongBuffer.writeLong(50000);
+                pongBuffer.writeLong(0);
                 channelHandlerContext.writeAndFlush(pongBuffer);
+
+                channelHandlerContext.close();
             }
 
             if(protocolMode == ProtocolState.LOGIN) {
+                //TODO: Fix this!
                 if(byteBuf.readableBytes() == 0) {
-                    kick(channelHandlerContext, "\"{\\\"text\\\": \\\"Please rejoin!\\\",\\\"color\\\": \\\"dark_red\\\"}\"");
+                    kick(channelHandlerContext, "{\"text\": \"Pls rejoin!\",\"color\": \"dark_red\"}");
                     channelHandlerContext.close();
                     return;
                 }
@@ -106,11 +109,11 @@ public class HandshakeHandler extends MessageToMessageDecoder<ByteBuf> {
                     return;
                 }
 
+                upstreamHandler.connectDownstream(copy);
+
                 ComixClient comixClient = new ComixClient(name, upstreamHandler.getDownstreamHandler(), upstreamHandler);
                 Comix.getInstance().addClient(comixClient);
                 upstreamHandler.setClient(comixClient);
-
-                upstreamHandler.connectDownstream(copy);
 
                 channelHandlerContext.channel().pipeline().remove(this);
 

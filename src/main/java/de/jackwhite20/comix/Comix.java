@@ -90,7 +90,7 @@ public class Comix implements Runnable {
 
     private Whitelist whitelist;
 
-    private List<ComixClient> clients = Collections.synchronizedList(new ArrayList<>());
+    private List<ComixClient> clients = new ArrayList<>();
 
     private CommandManager commandManager = new CommandManager();
 
@@ -132,6 +132,7 @@ public class Comix implements Runnable {
         commandManager.addCommand(new KickallCommand("kickall",  new String[] {"ka"}, "Kicks all players from Comix"));
         commandManager.addCommand(new ClearCommand("clear",  new String[] {"c"}, "Clears the screen"));
         commandManager.addCommand(new StopCommand("stop",  new String[] {"end"}, "Stops Comix"));
+        commandManager.addCommand(new StatsCommand("stats",  new String[] {}, "Stats about total traffic in and out from currently conencted clients"));
 
         List<String> cmds = new ArrayList<>();
         commandManager.getCommands().forEach(c -> cmds.add(c.getName()));
@@ -305,7 +306,7 @@ public class Comix implements Runnable {
     }
 
     public static String encodeToString(BufferedImage image, String type) {
-        String imageString = null;
+        String imageString;
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
 
         try {
@@ -357,16 +358,20 @@ public class Comix implements Runnable {
         clients.forEach(comixClient -> comixClient.getUpstreamHandler().getUpstreamChannel().writeAndFlush(buffer));
     }
 
-    public void addClient(ComixClient comixClient) {
+    public synchronized void addClient(ComixClient comixClient) {
         clients.add(comixClient);
     }
 
-    public void removeClient(ComixClient comixClient) {
+    public synchronized void removeClient(ComixClient comixClient) {
         clients.remove(comixClient);
     }
 
     public int getClientsOnline() {
         return clients.size();
+    }
+
+    public List<ComixClient> getClients() {
+        return clients;
     }
 
     public boolean isRunning() {

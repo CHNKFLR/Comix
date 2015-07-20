@@ -37,6 +37,10 @@ public class DownstreamHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
     private Channel upstreamChannel;
 
+    private long upstreamBytesOut;
+
+    private long downstreamBytesIn;
+
     public DownstreamHandler(ComixClient client, Channel upstreamChannel) {
         this.client = client;
         this.upstreamChannel = upstreamChannel;
@@ -46,8 +50,6 @@ public class DownstreamHandler extends SimpleChannelInboundHandler<ByteBuf> {
     public void channelActive(ChannelHandlerContext ctx) {
         ctx.read();
         ctx.write(Unpooled.EMPTY_BUFFER);
-
-        Comix.getLogger().info("[" + client.getName() + "] <-> DownstreamHandler has connected");
     }
 
     @Override
@@ -59,6 +61,9 @@ public class DownstreamHandler extends SimpleChannelInboundHandler<ByteBuf> {
                 ctx.channel().close();
             }
         });
+
+        upstreamBytesOut += byteBuf.readableBytes();
+        downstreamBytesIn += byteBuf.readableBytes();
     }
 
     @Override
@@ -67,6 +72,9 @@ public class DownstreamHandler extends SimpleChannelInboundHandler<ByteBuf> {
             if (upstreamChannel.isActive()) {
                 upstreamChannel.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE);
             }
+
+            upstreamBytesOut = 0;
+            downstreamBytesIn = 0;
 
             Comix.getLogger().info("[" + client.getName() + "] -> DownstreamHandler has disconnected");
         }
@@ -79,6 +87,14 @@ public class DownstreamHandler extends SimpleChannelInboundHandler<ByteBuf> {
         if (ch.isActive()) {
             ch.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE);
         }
+    }
+
+    public long getUpstreamBytesOut() {
+        return upstreamBytesOut;
+    }
+
+    public long getDownstreamBytesIn() {
+        return downstreamBytesIn;
     }
 
 }
