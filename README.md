@@ -23,6 +23,7 @@ If you have a large Minecraft Server Network (+400/800 players) it is a very goo
 - Colored MOTD
 - Maintenance mode (custom MOTD, custom kick message, custom version string)
 - Logging
+- Online/Offline detection for servers (automatically removing and adding to the LB)
 - Custom Address and Port binding for the Load-Balancer
 - As many target Server as you want
 - Load Balancing with simple Round-Robin
