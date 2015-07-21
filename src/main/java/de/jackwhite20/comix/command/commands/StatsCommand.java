@@ -35,6 +35,7 @@ public class StatsCommand extends Command {
         }
 
         Comix.getLogger().info("---------- Stats ----------");
+        Comix.getLogger().info("Clients connected: " + clients.size());
         Comix.getLogger().info("Total Upstream in: " + Util.convertBytes(totalUpstreamBytesIn));
         Comix.getLogger().info("Total Downstream out: " + Util.convertBytes(totalDownstreamBytesOut));
         Comix.getLogger().info("Total Upstream out: " + Util.convertBytes(totalUpstreamBytesOut));
