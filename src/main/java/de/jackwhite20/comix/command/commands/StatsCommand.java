@@ -27,11 +27,11 @@ public class StatsCommand extends Command {
         long totalDownstreamBytesIn = 0;
 
         for (ComixClient client : clients) {
-            totalUpstreamBytesIn += client.getUpstreamHandler().getUpstreamBytesIn();
-            totalDownstreamBytesOut += client.getUpstreamHandler().getDownstreamBytesOut();
+            totalUpstreamBytesIn += client.getUpstreamBytesIn();
+            totalDownstreamBytesOut += client.getDownstreamBytesOut();
 
-            totalUpstreamBytesOut += client.getDownstreamHandler().getUpstreamBytesOut();
-            totalDownstreamBytesIn += client.getDownstreamHandler().getDownstreamBytesIn();
+            totalUpstreamBytesOut += client.getUpstreamBytesOut();
+            totalDownstreamBytesIn += client.getDownstreamBytesIn();
         }
 
         Comix.getLogger().info("---------- Stats ----------");

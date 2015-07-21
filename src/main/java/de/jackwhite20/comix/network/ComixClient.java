@@ -55,4 +55,20 @@ public class ComixClient {
         return upstreamHandler;
     }
 
+    public long getUpstreamBytesIn() {
+        return upstreamHandler.getUpstreamBytesIn();
+    }
+
+    public long getDownstreamBytesOut() {
+        return upstreamHandler.getDownstreamBytesOut();
+    }
+
+    public long getUpstreamBytesOut() {
+        return downstreamHandler.getUpstreamBytesOut();
+    }
+
+    public long getDownstreamBytesIn() {
+        return downstreamHandler.getDownstreamBytesIn();
+    }
+
 }
