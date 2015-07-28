@@ -29,7 +29,6 @@ If you have a large Minecraft Server Network (+400/800 players) it is a very goo
 - Load Balancing with simple Round-Robin
 - Based on Netty for high performance
 - Monitoring (Planned)
-- Blocking a Range of IP Addresses (Planned)
 
 ### License
 Licensed under the GNU General Public License, Version 3.0.
