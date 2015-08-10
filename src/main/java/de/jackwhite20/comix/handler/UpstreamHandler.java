@@ -30,6 +30,8 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by JackWhite20 on 17.07.2015.
@@ -52,6 +54,8 @@ public class UpstreamHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
     private long downstreamBytesOut;
 
+    private List<ByteBuf> initialPackets = new ArrayList<>();
+
     public UpstreamHandler(BalancingStrategy strategy) {
         this.strategy = strategy;
     }
@@ -72,11 +76,15 @@ public class UpstreamHandler extends SimpleChannelInboundHandler<ByteBuf> {
         ChannelFuture f = bootstrap.connect(target.getHost(), target.getPort());
         downstreamChannel = f.channel();
 
+        initialPackets.add(initPacket);
+
         f.addListener((future) -> {
             if (future.isSuccess()) {
                 downstreamConnected = true;
 
-                downstreamChannel.writeAndFlush(initPacket.retain());
+                for (ByteBuf packet : initialPackets) {
+                    downstreamChannel.writeAndFlush(packet);
+                }
 
                 Comix.getLogger().info("[" + client.getName() + "] <-> [Comix] <-> [" + target.getName() + "] tunneled");
             } else {
@@ -136,6 +144,11 @@ public class UpstreamHandler extends SimpleChannelInboundHandler<ByteBuf> {
         }
     }
 
+    public void addInitialPacket(ByteBuf buf) {
+        if(!downstreamConnected)
+            initialPackets.add(buf);
+    }
+
     public Channel getUpstreamChannel() {
         return upstreamChannel;
     }
@@ -156,4 +169,7 @@ public class UpstreamHandler extends SimpleChannelInboundHandler<ByteBuf> {
         return downstreamBytesOut;
     }
 
+    public boolean isDownstreamConnected() {
+        return downstreamConnected;
+    }
 }

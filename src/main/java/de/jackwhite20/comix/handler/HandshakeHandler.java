@@ -41,6 +41,8 @@ public class HandshakeHandler extends MessageToMessageDecoder<ByteBuf> {
 
     private ProtocolState protocolMode = ProtocolState.HANDSHAKE;
 
+    private boolean downstreamInitialized = false;
+
     @Override
     protected void decode(ChannelHandlerContext channelHandlerContext, ByteBuf byteBuf, List<Object> out) throws Exception {
         ByteBuf copy = byteBuf.copy();
@@ -66,10 +68,6 @@ public class HandshakeHandler extends MessageToMessageDecoder<ByteBuf> {
                 Protocol.writeString(response, responseBuffer); // Data as json string
                 channelHandlerContext.writeAndFlush(responseBuffer);
 
-                // Read 2 bytes to prevent problems!
-                if(byteBuf.readableBytes() == 2)
-                    byteBuf.readBytes(2);
-
                 // Sending Pong instant because otherwise the pong will not receive properly!
                 ByteBuf pongBuffer = Unpooled.buffer();
                 Protocol.writeVarInt(9, pongBuffer);
@@ -81,10 +79,13 @@ public class HandshakeHandler extends MessageToMessageDecoder<ByteBuf> {
             }
 
             if(protocolMode == ProtocolState.LOGIN) {
-                //TODO: Fix this!
                 if(byteBuf.readableBytes() == 0) {
-                    kick(channelHandlerContext, "{\"text\": \"Pls rejoin!\",\"color\": \"dark_red\"}");
-                    channelHandlerContext.close();
+                    upstreamHandler.connectDownstream(copy);
+
+                    downstreamInitialized = true;
+
+                    out.add(copy.retain());
+
                     return;
                 }
 
@@ -109,7 +110,10 @@ public class HandshakeHandler extends MessageToMessageDecoder<ByteBuf> {
                     return;
                 }
 
-                upstreamHandler.connectDownstream(copy);
+                if(!downstreamInitialized)
+                    upstreamHandler.connectDownstream(copy);
+                else
+                    upstreamHandler.addInitialPacket(copy);
 
                 ComixClient comixClient = new ComixClient(name, upstreamHandler.getDownstreamHandler(), upstreamHandler);
                 Comix.getInstance().addClient(comixClient);
