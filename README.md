@@ -27,11 +27,11 @@ If you have a large Minecraft Server Network (+400/800 players) it is a very goo
 - Maintenance mode (custom MOTD, custom kick message, custom version string)
 - Logging
 - Online/Offline detection for servers (automatically removing and adding to the LB)
-- Custom Address and Port binding for the Load-Balancer
-- As many target Server as you want
-- Load Balancing with simple Round-Robin
-- Based on Netty for high performance
-- Monitoring (in working)
+- Custom address and port binding for the Load-Balancer
+- As many target servers as you want
+- Load balancing with simple Round-Robin
+- Based on Netty for high-performance
+- Monitoring (in work)
 
 ### License
 Licensed under the GNU General Public License, Version 3.0.
