@@ -49,7 +49,7 @@ public class ComixChannelInitializer extends ChannelInitializer<SocketChannel> {
 
         handshakeHandler.setUpstreamHandler(upstreamHandler);
 
-        Comix.getLogger().log(Level.INFO, "[" + ch.remoteAddress().getAddress().getHostAddress() + "] -> InitialHandler has connected");
+        Comix.getLogger().log(Level.INFO, "Comix", "[" + ch.remoteAddress().getAddress().getHostAddress() + "] -> InitialHandler has connected");
     }
 
 }

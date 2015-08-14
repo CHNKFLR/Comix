@@ -107,9 +107,9 @@ public class Comix implements Runnable {
     }
 
     public void start() {
-        System.setProperty( "java.net.preferIPv4Stack", "true" );
+        System.setProperty("java.net.preferIPv4Stack", "true");
 
-        ResourceLeakDetector.setLevel( ResourceLeakDetector.Level.DISABLED );
+        ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.DISABLED);
 
         AnsiConsole.systemInstall();
 
@@ -117,28 +117,18 @@ public class Comix implements Runnable {
 
         logger = new ComixLogger(consoleReader);
 
-        logger.info("------ Comix v.0.1 ------");
+        logger.log(Level.INFO, "Comix", "------ Comix v.0.1 ------");
 
         loadConfig();
 
-        logger.info((targets.size() > 0) ? "Targets:" : "No Target Servers found!");
-        targets.forEach(t -> logger.info(t.getName() + " - " + t.getHost() + ":" + t.getPort()));
+        logger.log(Level.INFO, "Load-Balancer", (targets.size() > 0) ? "Targets:" : "No Target Servers found!");
+        targets.forEach(t -> logger.log(Level.INFO, "Load-Balancer", t.getName() + " - " + t.getHost() + ":" + t.getPort()));
 
-        logger.info("Registering commands...");
+        logger.log(Level.INFO, "Commands", "Registering commands...");
 
-        commandManager.addCommand(new HelpCommand("help",  new String[] {"h", "?"}, "List of commands"));
-        commandManager.addCommand(new ReloadCommand("reload",  new String[] {"r"}, "Reloads 'ip-blacklist.comix', 'status.comix' and 'whitelist.comix'"));
-        commandManager.addCommand(new MaintenanceCommand("maintenance",  new String[] {"m"}, "Switches between Maintenance"));
-        commandManager.addCommand(new KickallCommand("kickall",  new String[] {"ka"}, "Kicks all players from Comix"));
-        commandManager.addCommand(new ClearCommand("clear",  new String[] {"c"}, "Clears the screen"));
-        commandManager.addCommand(new StopCommand("stop",  new String[] {"end"}, "Stops Comix"));
-        commandManager.addCommand(new StatsCommand("stats",  new String[] {}, "Stats about total traffic in and out from currently conencted clients"));
+        registerCommands();
 
-        List<String> cmds = new ArrayList<>();
-        commandManager.getCommands().forEach(c -> cmds.add(c.getName()));
-        consoleReader.addCompleter(new StringsCompleter(cmds));
-
-        logger.info("Starting Comix on " + balancerHost + ":" + balancerPort + "...");
+        logger.log(Level.INFO, "Comix", "Starting Comix on " + balancerHost + ":" + balancerPort + "...");
 
         balancingStrategy = new RoundRobinBalancingStrategy(targets);
 
@@ -154,7 +144,6 @@ public class Comix implements Runnable {
                     .option(ChannelOption.TCP_NODELAY, true)
                     .option(ChannelOption.SO_BACKLOG, comixConfig.getBacklog())
                     .option(ChannelOption.SO_REUSEADDR, true)
-                    .option(ChannelOption.SO_KEEPALIVE, true)
                     .childOption(ChannelOption.TCP_NODELAY, true)
                     .childOption(ChannelOption.AUTO_READ, false)
                     .childOption(ChannelOption.SO_TIMEOUT, 4000)
@@ -164,7 +153,7 @@ public class Comix implements Runnable {
 
             reload();
 
-            logger.info("Comix is started!");
+            logger.log(Level.INFO, "Comix", "Comix is started!");
 
             f.channel().closeFuture().sync();
 
@@ -174,6 +163,20 @@ public class Comix implements Runnable {
         } finally {
             shutdown();
         }
+    }
+
+    private void registerCommands() {
+        commandManager.addCommand(new HelpCommand("help",  new String[] {"h", "?"}, "List of commands"));
+        commandManager.addCommand(new ReloadCommand("reload",  new String[] {"r"}, "Reloads 'ip-blacklist.comix', 'status.comix' and 'whitelist.comix'"));
+        commandManager.addCommand(new MaintenanceCommand("maintenance",  new String[] {"m"}, "Switches between Maintenance"));
+        commandManager.addCommand(new KickallCommand("kickall",  new String[] {"ka"}, "Kicks all players from Comix"));
+        commandManager.addCommand(new ClearCommand("clear",  new String[] {"c"}, "Clears the screen"));
+        commandManager.addCommand(new StopCommand("stop",  new String[] {"end"}, "Stops Comix"));
+        commandManager.addCommand(new StatsCommand("stats",  new String[] {}, "Stats about total traffic in and out from currently conencted clients"));
+
+        List<String> cmds = new ArrayList<>();
+        commandManager.getCommands().forEach(c -> cmds.add(c.getName()));
+        consoleReader.addCompleter(new StringsCompleter(cmds));
     }
 
     public void kickAll() {
@@ -228,7 +231,7 @@ public class Comix implements Runnable {
             this.balancerPort = comixConfig.getPort();
             this.targets = comixConfig.getTargets();
 
-            logger.info("Config loaded...");
+            logger.log(Level.INFO, "Config", "Config loaded...");
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Unable to load Comix Config file!");
             System.exit(1);
@@ -242,7 +245,7 @@ public class Comix implements Runnable {
             whitelist = ConfigLoader.loadConfig("whitelist.comix", Whitelist.class);
 
             if(!whitelist.isEnabled())
-                logger.info("Whitelist loaded...");
+                logger.log(Level.INFO, "Whitelist", "Whitelist loaded...");
             else
                 logger.info("Whitelisted: " + String.join(", ", whitelist.getNames()));
         } catch (Exception e) {
@@ -305,7 +308,7 @@ public class Comix implements Runnable {
             return "";
         }
 
-        logger.info("Favicon loaded...");
+        logger.log(Level.INFO, "Status", "Favicon loaded...");
 
         return imageString;
     }
@@ -322,7 +325,7 @@ public class Comix implements Runnable {
                 statusResponseString = "{\"version\":{\"name\":\"" + comixConfig.getMaintenancePingMessage() + "\",\"protocol\":0},\"players\":{\"max\":" + statusResponse.getPlayers().getMax() + ",\"online\":" + statusResponse.getPlayers().getOnline() + "},\"description\":\"" + comixConfig.getMaintenanceDescription() + "\",\"favicon\":\"data:image/png;base64," + faviconString + "\",\"modinfo\":{\"type\":\"FML\",\"modList\":[]}}";
             }
 
-            logger.info("Status Response loaded...");
+            logger.log(Level.INFO, "Status", "Status Response loaded...");
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Error while loading status.comix");
             e.printStackTrace();

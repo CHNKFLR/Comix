@@ -31,6 +31,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageDecoder;
 
 import java.util.List;
+import java.util.logging.Level;
 
 /**
  * Created by JackWhite20 on 18.07.2015.
@@ -121,7 +122,7 @@ public class HandshakeHandler extends MessageToMessageDecoder<ByteBuf> {
 
                 channelHandlerContext.channel().pipeline().remove(this);
 
-                Comix.getLogger().info("Player logged in: " + name);
+                Comix.getLogger().log(Level.INFO, "Handshake", "Player logged in: " + name);
 
                 out.add(copy.retain());
             }

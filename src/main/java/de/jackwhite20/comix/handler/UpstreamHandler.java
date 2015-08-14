@@ -32,6 +32,7 @@ import io.netty.channel.*;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 
 /**
  * Created by JackWhite20 on 17.07.2015.
@@ -86,7 +87,7 @@ public class UpstreamHandler extends SimpleChannelInboundHandler<ByteBuf> {
                     downstreamChannel.writeAndFlush(packet);
                 }
 
-                Comix.getLogger().info("[" + client.getName() + "] <-> [Comix] <-> [" + target.getName() + "] tunneled");
+                Comix.getLogger().log(Level.INFO, "Proxy", "[" + client.getName() + "] <-> [Comix] <-> [" + target.getName() + "] tunneled");
             } else {
                 upstreamChannel.close();
             }
@@ -97,7 +98,6 @@ public class UpstreamHandler extends SimpleChannelInboundHandler<ByteBuf> {
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         upstreamChannel = ctx.channel();
 
-        // Start reading
         upstreamChannel.read();
     }
 

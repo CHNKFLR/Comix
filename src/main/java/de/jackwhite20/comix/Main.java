@@ -55,8 +55,6 @@ public class Main {
                 Comix.getLogger().log(Level.INFO, "Command not found!");
             }
         }
-
-        Runtime.getRuntime().addShutdownHook(new Thread(comix::shutdown));
     }
 
 }
