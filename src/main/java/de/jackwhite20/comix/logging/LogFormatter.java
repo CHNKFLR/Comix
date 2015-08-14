@@ -36,8 +36,11 @@ public class LogFormatter extends Formatter {
     public String format(LogRecord record) {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append(dateFormat.format(new Date()));
-        stringBuilder.append(" [" + record.getLevel() + "]");
-        stringBuilder.append(": " + record.getMessage());
+        stringBuilder.append(" [").append(record.getLevel()).append("]");
+        if(record.getParameters() == null && record.getMessage() != "")
+            stringBuilder.append(": ").append(record.getMessage());
+        else
+            stringBuilder.append(" [").append(record.getMessage()).append("]").append(": ").append(record.getParameters()[0]);
 
         return stringBuilder.toString();
     }

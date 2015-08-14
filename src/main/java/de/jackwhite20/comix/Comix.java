@@ -19,12 +19,11 @@
 
 package de.jackwhite20.comix;
 
-import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import de.jackwhite20.comix.command.CommandManager;
 import de.jackwhite20.comix.command.commands.*;
 import de.jackwhite20.comix.config.ComixConfig;
-import de.jackwhite20.comix.config.Config;
+import de.jackwhite20.comix.config.ConfigLoader;
 import de.jackwhite20.comix.config.response.StatusResponse;
 import de.jackwhite20.comix.handler.ComixChannelInitializer;
 import de.jackwhite20.comix.logging.ComixLogger;
@@ -223,7 +222,7 @@ public class Comix implements Runnable {
 
     private void loadConfig() {
         try {
-            this.comixConfig = Config.loadConfig("");
+            this.comixConfig = ConfigLoader.loadConfig("config.comix", ComixConfig.class);
 
             this.balancerHost = comixConfig.getHost();
             this.balancerPort = comixConfig.getPort();
@@ -240,16 +239,7 @@ public class Comix implements Runnable {
         try {
             new File("whitelist.comix").createNewFile();
 
-            BufferedReader bufferedReader = new BufferedReader(new FileReader("whitelist.comix"));
-            StringBuilder stringBuilder = new StringBuilder();
-
-            String line;
-            while ((line = bufferedReader.readLine()) != null) {
-                stringBuilder.append(line);
-                stringBuilder.append(System.lineSeparator());
-            }
-
-            whitelist = new Gson().fromJson(stringBuilder.toString(), Whitelist.class);
+            whitelist = ConfigLoader.loadConfig("whitelist.comix", Whitelist.class);
 
             if(!whitelist.isEnabled())
                 logger.info("Whitelist loaded...");
@@ -290,13 +280,7 @@ public class Comix implements Runnable {
         try {
             new File("ip-blacklist.comix").createNewFile();
 
-            BufferedReader bufferedReader = new BufferedReader(new FileReader("ip-blacklist.comix"));
-
-            String line;
-            while ((line = bufferedReader.readLine()) != null) {
-                if(line != "")
-                    ipBlacklist.add(line);
-            }
+            ConfigLoader.loadFile("ip-blacklist.comix", ipBlacklist);
 
             logger.log(Level.INFO, "IP-Blacklist", (ipBlacklist.size() == 0) ? "File loaded..." : ipBlacklist.size() + " IPs loaded...");
         } catch (Exception e) {
@@ -328,18 +312,10 @@ public class Comix implements Runnable {
 
     public void loadStatusResponse() {
         try {
-            BufferedReader bufferedReader = new BufferedReader(new FileReader("status.comix"));
-            StringBuilder stringBuilder = new StringBuilder();
-
-            String line;
-            while ((line = bufferedReader.readLine()) != null) {
-                stringBuilder.append(line);
-                stringBuilder.append(System.lineSeparator());
-            }
-
             String faviconString = encodeToString(ImageIO.read(new File("favicon.png")), "png");
 
-            statusResponse = new Gson().fromJson(stringBuilder.toString(), StatusResponse.class);
+            statusResponse = ConfigLoader.loadConfig("status.comix", StatusResponse.class);
+
             if(!comixConfig.isMaintenance())
                 statusResponseString = "{\"version\":{\"name\":\"" + statusResponse.getVersion().getName() + "\",\"protocol\":" + statusResponse.getVersion().getProtocol() + "},\"players\":{\"max\":" + statusResponse.getPlayers().getMax() + ",\"online\":" + statusResponse.getPlayers().getOnline() + ", \"sample\":[{\"name\":\"" + statusResponse.getPlayers().getSample() + "\",\"id\":\"00000000-0000-0000-0000-000000000000\"}]},\"description\":\"" + statusResponse.getDescription() + "\",\"favicon\":\"data:image/png;base64," + faviconString + "\",\"modinfo\":{\"type\":\"FML\",\"modList\":[]}}";
             else {
