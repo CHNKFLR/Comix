@@ -38,11 +38,12 @@ Also it was designed from the ground up to have as many settings for configurati
 <a id="why-comix-and-not-a-dns-lb" class="anchor" href="#why-comix-and-not-a-dns-lb" aria-hidden="true"><span class="octicon octicon-link"></span></a>Why Comix and not a DNS-LB?</h3>
 
 <p>Comix will know if a server went offline or back online and will automatically remove or add the server from the load-balancing system. So you don't have to worry that your players will try to join through an offline proxy.
-Players will only ping and request information such as MOTD or favicon. Comix will arrange that not one of your proxies will have to deal with unnecessary requests; less work for your proxies. 
+Players will only ping and request information such as MOTD or favicon from Comix. Comix will arrange that not one of your proxies will have to deal with unnecessary requests; less work for your proxies. 
 All options like MOTD or for example the MOTD in the maintenance mode are configurable and you only have to edit it once because the proxies no longer have to process this requests. Another cool feature is that you can go live in maintenance mode with Comix by merely using one command.</p>
 
 <p>A very important feature is that the only thing that must be exposed to the internet is your ip and the port where Comix is running.
-Nobody will know how many proxies you are maintaining or which port they are running on.</p>
+Nobody will know how many proxies you are maintaining or which port they are running on. You can apply all firewall settings and other security task especially for the Comix instance and not for all your proxies behind it.
+You can also block ips directly with Comix so that the connection is droped as fast as possible to not utilize your direct backend system with unauthorized requests.</p>
 
 <h3>
 <a id="features" class="anchor" href="#features" aria-hidden="true"><span class="octicon octicon-link"></span></a>Features</h3>
@@ -61,6 +62,7 @@ Nobody will know how many proxies you are maintaining or which port they are run
 <li>Load balancing with simple Round-Robin</li>
 <li>Based on Netty for high-performance</li>
 <li>Monitoring (in work)</li>
+<li>Block ip ranges (in work)</li>
 </ul>
 
 <h3>
