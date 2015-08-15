@@ -24,6 +24,7 @@ import de.jackwhite20.comix.command.CommandManager;
 import de.jackwhite20.comix.command.commands.*;
 import de.jackwhite20.comix.config.ComixConfig;
 import de.jackwhite20.comix.config.ConfigLoader;
+import de.jackwhite20.comix.config.ip.IPRange;
 import de.jackwhite20.comix.config.response.StatusResponse;
 import de.jackwhite20.comix.handler.ComixChannelInitializer;
 import de.jackwhite20.comix.logging.ComixLogger;
@@ -47,6 +48,7 @@ import sun.misc.BASE64Encoder;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
@@ -87,6 +89,8 @@ public class Comix implements Runnable {
     private NioEventLoopGroup workerGroup;
 
     private List<String> ipBlacklist = new ArrayList<>();
+
+    private List<IPRange> ipRangeBlacklist = new ArrayList<>();
 
     private Whitelist whitelist;
 
@@ -166,13 +170,13 @@ public class Comix implements Runnable {
     }
 
     private void registerCommands() {
-        commandManager.addCommand(new HelpCommand("help",  new String[] {"h", "?"}, "List of commands"));
-        commandManager.addCommand(new ReloadCommand("reload",  new String[] {"r"}, "Reloads 'ip-blacklist.comix', 'status.comix' and 'whitelist.comix'"));
-        commandManager.addCommand(new MaintenanceCommand("maintenance",  new String[] {"m"}, "Switches between Maintenance"));
-        commandManager.addCommand(new KickallCommand("kickall",  new String[] {"ka"}, "Kicks all players from Comix"));
-        commandManager.addCommand(new ClearCommand("clear",  new String[] {"c"}, "Clears the screen"));
+        commandManager.addCommand(new HelpCommand("help", new String[]{"h", "?"}, "List of commands"));
+        commandManager.addCommand(new ReloadCommand("reload", new String[]{"r"}, "Reloads 'ip-blacklist.comix', 'status.comix' and 'whitelist.comix'"));
+        commandManager.addCommand(new MaintenanceCommand("maintenance", new String[]{"m"}, "Switches between Maintenance"));
+        commandManager.addCommand(new KickallCommand("kickall", new String[]{"ka"}, "Kicks all players from Comix"));
+        commandManager.addCommand(new ClearCommand("clear", new String[]{"c"}, "Clears the screen"));
         commandManager.addCommand(new StopCommand("stop",  new String[] {"end"}, "Stops Comix"));
-        commandManager.addCommand(new StatsCommand("stats",  new String[] {}, "Stats about total traffic in and out from currently conencted clients"));
+        commandManager.addCommand(new StatsCommand("stats", new String[]{}, "Stats about total traffic in and out from currently conencted clients"));
 
         List<String> cmds = new ArrayList<>();
         commandManager.getCommands().forEach(c -> cmds.add(c.getName()));
@@ -253,6 +257,15 @@ public class Comix implements Runnable {
         }
     }
 
+    public boolean isIpRangeBanned(InetSocketAddress ip) {
+        for (IPRange range : ipRangeBlacklist) {
+            if(!range.isAllowed(ip))
+                return true;
+        }
+
+        return false;
+    }
+
     public boolean isIpBanned(String ip) {
         return ipBlacklist.contains(ip);
     }
@@ -283,9 +296,15 @@ public class Comix implements Runnable {
         try {
             new File("ip-blacklist.comix").createNewFile();
 
-            ConfigLoader.loadFile("ip-blacklist.comix", ipBlacklist);
+            ConfigLoader.loadIpBlacklist(ipBlacklist, ipRangeBlacklist);
 
-            logger.log(Level.INFO, "IP-Blacklist", (ipBlacklist.size() == 0) ? "File loaded..." : ipBlacklist.size() + " IPs loaded...");
+            logger.log(Level.INFO, "IP-Blacklist", "File loaded...");
+
+            if(ipBlacklist.size() > 0)
+                logger.log(Level.INFO, "IP-Blacklist", ipBlacklist.size() + " IPs loaded!");
+
+            if(ipRangeBlacklist.size() > 0)
+                logger.log(Level.INFO, "IP-Blacklist", ipRangeBlacklist.size() + " IP-Ranges loaded!");
         } catch (Exception e) {
             logger.log(Level.WARNING, "Error while loading ip-blacklist.comix: " + e.getMessage());
         }

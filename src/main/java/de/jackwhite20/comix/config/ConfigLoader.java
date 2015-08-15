@@ -20,6 +20,7 @@
 package de.jackwhite20.comix.config;
 
 import com.google.gson.Gson;
+import de.jackwhite20.comix.config.ip.IPRange;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -47,13 +48,20 @@ public class ConfigLoader {
         return GSON.fromJson(stringBuilder.toString(), type);
     }
 
-    public static void loadFile(String name, List<String> listToFill) throws Exception {
-        BufferedReader bufferedReader = new BufferedReader(new FileReader(name));
+    public static void loadIpBlacklist(List<String> ips, List<IPRange> ipRanges) throws Exception {
+        BufferedReader bufferedReader = new BufferedReader(new FileReader("ip-blacklist.comix"));
 
         String line;
         while ((line = bufferedReader.readLine()) != null) {
-            if(line != "")
-                listToFill.add(line);
+            if(line != "") {
+                String[] splitted = line.split(",");
+                if(splitted.length == 1) {
+                    ips.add(line);
+                }else if(splitted.length == 2) {
+                    ipRanges.add(new IPRange(splitted[0], splitted[1]));
+                }
+            }
         }
     }
+
 }

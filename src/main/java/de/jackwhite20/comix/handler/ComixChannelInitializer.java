@@ -24,6 +24,7 @@ import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
 
+import java.net.InetSocketAddress;
 import java.util.logging.Level;
 
 /**
@@ -31,12 +32,25 @@ import java.util.logging.Level;
  */
 public class ComixChannelInitializer extends ChannelInitializer<SocketChannel> {
 
+    private Comix comix;
+
+    public ComixChannelInitializer() {
+        this.comix = Comix.getInstance();
+    }
+
     @Override
     protected void initChannel(SocketChannel ch) throws Exception {
         ChannelPipeline p = ch.pipeline();
+        InetSocketAddress remoteAddress = ch.remoteAddress();
 
         // Simple IP-Blacklist
-        if (Comix.getInstance().isIpBanned(ch.remoteAddress().getAddress().getHostAddress())) {
+        if (comix.isIpBanned(remoteAddress.getAddress().getHostAddress())) {
+            ch.close();
+            return;
+        }
+
+        // Simple IP-Range-Blacklist
+        if(comix.isIpRangeBanned(remoteAddress)) {
             ch.close();
             return;
         }
