@@ -3,7 +3,7 @@ Comix is a Load Balancing Reverse Proxy Server build on top of Netty for Minecra
 
 ![ScreenShot](http://www.ibm.com/developerworks/websphere/library/techarticles/1308_gupta/images/fig01.jpg)
 
-**Comix is at the moment under heavy development, so stay up to date with the latest commit and changes! Dont't forget to checkout the wiki for possible config changes!**
+**Dont't forget to checkout the wiki for possible config changes!**
 
 
 ### Website
