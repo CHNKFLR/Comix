@@ -23,7 +23,7 @@ If you have a large Minecraft Server Network (+400/800 players) it is a very goo
 - IP-Blacklist
 - Commands (help, reload, kickall, etc..)
 - Whitelist (choose who is allowed to join, or allow all)
-- Customizable ping response (MOTD, online players, max players and sample text)
+- Customizable ping response (MOTD, online players, max players and sample text, for now 0ms as ping)
 - Colored MOTD
 - Maintenance mode (extra MOTD, custom kick message, custom version string)
 - Logging
