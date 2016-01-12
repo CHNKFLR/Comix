@@ -90,7 +90,7 @@ public class HandshakeHandler extends MessageToMessageDecoder<ByteBuf> {
                     return;
                 }
 
-                String name = Protocol.readString(byteBuf);
+                String name = Protocol.readString(byteBuf).trim();
 
                 //TODO: Improve
                 if(Comix.getInstance().getComixConfig().isMaintenance()) {
